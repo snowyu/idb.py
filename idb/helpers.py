@@ -23,33 +23,6 @@ IDB_VALUE_FILE = '.value'
 IDB_TYPES = {'string': str, 'object': dict, 'integer': int, 'hex': Str2Hex, 'float': float, 'boolean': Str2Bool}
 IDB_LTYPES = {str: 'String', dict: 'Object', int: 'Integer', hex: 'Hex', float: 'Float', bool: 'Boolean'}
 
-IDB_ESCAPE_CHARS   = u'/*?'
-IDB_UNESCAPE_CHARS = u'／＊？'
-
-def EscapeChar(aChar, index=0):
-    #for i, c in enumerate(IDB_ESCAPE_CHARS):
-    for i in range(index, len(IDB_ESCAPE_CHARS)):
-        if aChar == IDB_ESCAPE_CHARS[i]:
-            aChar = IDB_UNESCAPE_CHARS[i]
-            break
-    return aChar
-
-def UnEscapeChar(aChar index=0):
-    #for i, c in enumerate(IDB_UNESCAPE_CHARS):
-    for i in range(index, len(IDB_UNESCAPE_CHARS)):
-        if aChar == IDB_UNESCAPE_CHARS[i]:
-            aChar = IDB_ESCAPE_CHARS[i]
-            break
-    return aChar
-
-def EscapeString(value, index=0):
-    value = ''.join(EscapeChar(c, index) for c in value)
-    return value
-
-def UnEscapeString(value, index=0):
-    value = ''.join(UnEscapeChar(c, index) for c in value)
-    return value
-
 def GetFileValue(aDir):
     """
     """
@@ -74,14 +47,18 @@ def GetFileValue(aDir):
         result = [value.replace(path.join(aDir, '='),'') for value in result] #remove the prefix "="
     return result
 
+# the aDir MUST BE urllib.quote_plus(aDir, '/') first!
+# the aString MUST BE urllib.quote_plus(aString) first!
 def CreateDBString(aDir, aString, aCached = True):
     """Create aString in aDir
     """
     aFile = path.join(aDir, '=' + aString)
-    vDir = path.dirname(aFile)
-    aString = path.basename(aFile)
-    CreateDir(vDir)
-    TouchFile(aFile)
+    #vDir = path.dirname(aFile)
+    #aString = path.basename(aFile)
+    CreateDir(aDir)
+    x = xattr(aDir)
+    x[IDB_VALUE_FILE] = aString
+    #TouchFile(aFile)
     if aCached:
         aFile = path.join(aDir, IDB_VALUE_FILE)
         with open(aFile, 'w') as f:
