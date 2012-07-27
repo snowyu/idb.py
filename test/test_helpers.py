@@ -14,8 +14,11 @@ from base_test import BaseTest, ROOT_DIR
 
 class TestIDBHelpers(BaseTest):
     def test_CreateDBString(self):
-        """assert 'h' in x """
         pairs = base_test.create_pairs(199)
+        assert GetDirCount(ROOT_DIR) == len(pairs)
+        base_test.check_pairs(pairs)
+    def test_CreateDBStringNoCahce(self):
+        pairs = base_test.create_pairs(199, False)
         assert GetDirCount(ROOT_DIR) == len(pairs)
         base_test.check_pairs(pairs)
 
