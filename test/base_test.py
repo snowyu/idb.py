@@ -39,6 +39,8 @@ def check_pairs(pairs, wanted_result = True):
             assert vStr == vWantedStr
         else:
             assert vStr != vWantedStr
+        vStr = GetFileValue(vDir + RandomString(6))
+        assert vStr == None
 
 class BaseTest(unittest.TestCase):
     def setUp(self):
