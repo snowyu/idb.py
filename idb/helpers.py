@@ -29,7 +29,7 @@ def GetFileValue(aDir):
     result = None
     x = xattr(aDir)
     try:
-        result = x[IDB_VALUE_FILE]
+        result = [x[IDB_VALUE_FILE]]
     except KeyError:
         pass
     if result == None:
