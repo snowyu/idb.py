@@ -16,32 +16,36 @@ from utils import Str2Hex, Str2Bool, CreateDir, TouchFile
 # the iDB Library version:
 IDB_VER = '0.0.2'
 # the iDB Specification version:
-IDB_SPEC_VER = '0.2'
+IDB_SPEC_VER = 0.2
 
 IDB_KEY_TYPE = '.type'
 IDB_VALUE_FILE = '.value'
 IDB_TYPES = {'string': str, 'object': dict, 'integer': int, 'hex': Str2Hex, 'float': float, 'boolean': Str2Bool}
 IDB_LTYPES = {str: 'String', dict: 'Object', int: 'Integer', hex: 'Hex', float: 'Float', bool: 'Boolean'}
 
-def GetFileValue(aDir):
+def GetFileValue(aDir, aVersion=IDB_SPEC_VER):
     """
     """
     result = None
     x = xattr(aDir)
     try:
         result = [x[IDB_VALUE_FILE]]
-    except KeyError:
-        pass
+    except (KeyError, IOError) as e:
+        if type(e) == IOError:
+            if e.errno  == errno.ENOENT: # No Such File
+                return result
+            else:
+                raise
     if result == None:
         # It's backup only now in xattr version.
         aFile = path.join(aDir, IDB_VALUE_FILE)
         print("%s"  % aFile)
         try:
             result = [line.strip() for line in open(aFile, 'r')]
-        except IOError, e:
+        except IOError as e:
             if e.errno != errno.ENOENT: # No Such File
                 raise
-    if result == None: # just keep backcompatible
+    if result == None and aVersion <= 0.1: # just keep backcompatible
         aFile = path.join(aDir, '=*')
         result = glob.glob(aFile) # Search dir by pattern
         result = [value.replace(path.join(aDir, '='),'') for value in result] #remove the prefix "="
@@ -52,7 +56,7 @@ def GetFileValue(aDir):
 def CreateDBString(aDir, aString, aCached = True):
     """Create aString in aDir
     """
-    aFile = path.join(aDir, '=' + aString)
+    #aFile = path.join(aDir, '=' + aString)
     #vDir = path.dirname(aFile)
     #aString = path.basename(aFile)
     CreateDir(aDir)
