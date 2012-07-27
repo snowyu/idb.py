@@ -7,44 +7,83 @@ import glob
 
 from os import path
 from shutil import rmtree
+from xattr import xattr
+from urllib import quote_plus, unquote_plus
 
 from utils import Str2Hex, Str2Bool, CreateDir, TouchFile
 
 # Constants
 # the iDB Library version:
-IDB_VER = '0.0.1'
+IDB_VER = '0.0.2'
 # the iDB Specification version:
-IDB_SPEC_VER = '0.1'
+IDB_SPEC_VER = '0.2'
 
 IDB_KEY_TYPE = '.type'
-IDB_VALUE_FILE = '=*'
-IDB_VALUE_CACHE_FILE = '.value'
+IDB_VALUE_FILE = '.value'
 IDB_TYPES = {'string': str, 'object': dict, 'integer': int, 'hex': Str2Hex, 'float': float, 'boolean': Str2Bool}
 IDB_LTYPES = {str: 'String', dict: 'Object', int: 'Integer', hex: 'Hex', float: 'Float', bool: 'Boolean'}
 
+IDB_ESCAPE_CHARS   = u'/*?'
+IDB_UNESCAPE_CHARS = u'／＊？'
+
+def EscapeChar(aChar, index=0):
+    #for i, c in enumerate(IDB_ESCAPE_CHARS):
+    for i in range(index, len(IDB_ESCAPE_CHARS)):
+        if aChar == IDB_ESCAPE_CHARS[i]:
+            aChar = IDB_UNESCAPE_CHARS[i]
+            break
+    return aChar
+
+def UnEscapeChar(aChar index=0):
+    #for i, c in enumerate(IDB_UNESCAPE_CHARS):
+    for i in range(index, len(IDB_UNESCAPE_CHARS)):
+        if aChar == IDB_UNESCAPE_CHARS[i]:
+            aChar = IDB_ESCAPE_CHARS[i]
+            break
+    return aChar
+
+def EscapeString(value, index=0):
+    value = ''.join(EscapeChar(c, index) for c in value)
+    return value
+
+def UnEscapeString(value, index=0):
+    value = ''.join(UnEscapeChar(c, index) for c in value)
+    return value
+
 def GetFileValue(aDir):
-    aFile = path.join(aDir, IDB_VALUE_CACHE_FILE)
+    """
+    """
     result = None
+    x = xattr(aDir)
     try:
-        result = [line.strip() for line in open(aFile, 'r')]
-    except IOError, e:
-        if e.errno != errno.ENOENT: # No Such File
-            raise
+        result = x[IDB_VALUE_FILE]
+    except KeyError:
+        pass
     if result == None:
+        # It's backup only now in xattr version.
         aFile = path.join(aDir, IDB_VALUE_FILE)
+        print("%s"  % aFile)
+        try:
+            result = [line.strip() for line in open(aFile, 'r')]
+        except IOError, e:
+            if e.errno != errno.ENOENT: # No Such File
+                raise
+    if result == None: # just keep backcompatible
+        aFile = path.join(aDir, '=*')
         result = glob.glob(aFile) # Search dir by pattern
+        result = [value.replace(path.join(aDir, '='),'') for value in result] #remove the prefix "="
     return result
 
 def CreateDBString(aDir, aString, aCached = True):
     """Create aString in aDir
     """
     aFile = path.join(aDir, '=' + aString)
-    aDir = path.dirname(aFile)
+    vDir = path.dirname(aFile)
     aString = path.basename(aFile)
-    CreateDir(aDir)
+    CreateDir(vDir)
     TouchFile(aFile)
     if aCached:
-        aFile = path.join(aDir, IDB_VALUE_CACHE_FILE)
+        aFile = path.join(aDir, IDB_VALUE_FILE)
         with open(aFile, 'w') as f:
             f.write(aString)
 
@@ -55,11 +94,6 @@ def CreateDBValue(aDir,  aValue, aValueType):
 def GetDBValue(aDir):
     vValues = GetFileValue(aDir) # Search dir by pattern
     if len(vValues) > 0:
-        # load value into vValues now.
-        vValues = [value.replace(path.join(aDir, '='),'') for value in vValues] #remove the prefix "="
-        #for i, value in enumerate(vValues):
-        #    vValues[i] = value.replace(path.join(aDir, '='),'')  #remove the prefix "="
-
         # try to determine the value's type.
         vKeyTypeDir = path.join(aDir, IDB_KEY_TYPE)
         vKeyType = None
