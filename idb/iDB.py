@@ -7,7 +7,7 @@ import glob
 from os import path
 
 from utils import CreateDir
-from helpers import IDB_SPEC_VER, CreateDBString, GetDBValue
+from helpers import IDB_SPEC_VER, GetDBValue
 
 # No DB DIR Specified
 EIDBNODIR  =  -100

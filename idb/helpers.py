@@ -1,16 +1,18 @@
 #!/usr/bin/python
 #coding:utf-8
 
-import utils
+import logging
 import errno
 import glob
+
+import utils
 
 from os import path
 from shutil import rmtree
 from xattr import xattr
 from urllib import quote_plus, unquote_plus
 
-from utils import Str2Hex, Str2Bool, CreateDir, TouchFile
+from utils import Str2Hex, Str2Bool, CreateDir, TouchFile, GetXattrValue, IsXattrValueExists
 
 # Constants
 # the iDB Library version:
@@ -18,34 +20,38 @@ IDB_VER = '0.0.2'
 # the iDB Specification version:
 IDB_SPEC_VER = 0.2
 
-IDB_KEY_TYPE = '.type'
-IDB_VALUE_FILE = '.value'
+IDB_KEY_TYPE_NAME = '.type'
+IDB_VALUE_NAME = '.value'
 IDB_TYPES = {'string': str, 'object': dict, 'integer': int, 'hex': Str2Hex, 'float': float, 'boolean': Str2Bool}
 IDB_LTYPES = {str: 'String', dict: 'Object', int: 'Integer', hex: 'Hex', float: 'Float', bool: 'Boolean'}
 
-def GetFileValue(aDir, aVersion=IDB_SPEC_VER):
+logger = logging.getLogger(__name__)
+
+def IsFileValueExists(aDir, aAttriubte=IDB_VALUE_NAME, aDBVersion=IDB_SPEC_VER):
+    result = IsXattrValueExists(aDir, aAttriubte)
+    if not result:
+        aFile = path.join(aDir, aAttriubte)
+        result = path.isfile(aFile)
+    if not result and aDBVersion  <= 0.1 and aAttriubte == IDB_VALUE_NAME:  
+        aFile = path.join(aDir, '=*')
+        result = len(glob.glob(aFile)) > 0 # Search dir by pattern
+    return result
+
+def ReadFileValue(aDir, aAttriubte=IDB_VALUE_NAME, aDBVersion=IDB_SPEC_VER):
     """
     """
-    result = None
-    x = xattr(aDir)
-    try:
-        result = [x[IDB_VALUE_FILE]]
-    except (KeyError, IOError) as e:
-        if type(e) == IOError:
-            if e.errno  == errno.ENOENT: # No Such File
-                return result
-            else:
-                raise
+    result = GetXattrValue(aDir, aAttriubte)
     if result == None:
-        # It's backup only now in xattr version.
-        aFile = path.join(aDir, IDB_VALUE_FILE)
-        print("%s"  % aFile)
+        # It's the backup of the value.
+        aFile = path.join(aDir, aAttriubte)
         try:
             result = [line.strip() for line in open(aFile, 'r')]
         except IOError as e:
             if e.errno != errno.ENOENT: # No Such File
                 raise
-    if result == None and aVersion <= 0.1: # just keep backcompatible
+    else:
+        result = [result]
+    if result == None and aDBVersion <= 0.1 and aAttriubte == IDB_VALUE_NAME: # just keep backcompatible
         aFile = path.join(aDir, '=*')
         result = glob.glob(aFile) # Search dir by pattern
         result = [value.replace(path.join(aDir, '='),'') for value in result] #remove the prefix "="
@@ -53,7 +59,7 @@ def GetFileValue(aDir, aVersion=IDB_SPEC_VER):
 
 # the aDir MUST BE urllib.quote_plus(aDir, '/') first!
 # the aString MUST BE urllib.quote_plus(aString) first!
-def CreateDBString(aDir, aString, aCached = True):
+def WriteFileValue(aDir, aValue, aAttriubte=IDB_VALUE_NAME, aCached = True):
     """Create aString in aDir
     """
     #aFile = path.join(aDir, '=' + aString)
@@ -61,29 +67,25 @@ def CreateDBString(aDir, aString, aCached = True):
     #aString = path.basename(aFile)
     CreateDir(aDir)
     x = xattr(aDir)
-    x[IDB_VALUE_FILE] = aString
+    x[aAttriubte] = aValue
     #TouchFile(aFile)
     if aCached:
-        aFile = path.join(aDir, IDB_VALUE_FILE)
+        aFile = path.join(aDir, aAttriubte)
         with open(aFile, 'w') as f:
-            f.write(aString)
+            f.write(aAttriubte)
 
 # the helper functions to operate the iDB
 def CreateDBValue(aDir,  aValue, aValueType):
     """
     """
-def GetDBValue(aDir):
-    vValues = GetFileValue(aDir) # Search dir by pattern
+def GetDBValue(aDir, aDBVersion=IDB_SPEC_VER):
+    vValues = ReadFileValue(aDir, IDB_VALUE_NAME, aDBVersion)
     if len(vValues) > 0:
         # try to determine the value's type.
-        vKeyTypeDir = path.join(aDir, IDB_KEY_TYPE)
-        vKeyType = None
-        if path.exists(vKeyTypeDir):
-            value = glob.glob(path.join(vKeyTypeDir, IDB_VALUE_FILE))
-            if len(value) > 0:
-                value = str.lower(value[0])
-                if IDB_TYPES.has_key(value):
-                    vKeyType = IDB_TYPES[value]
+        vKeyType = ReadFileValue(aDir, IDB_KEY_TYPE_NAME, aDBVersion)
+        if IDB_TYPES.has_key(vKeyType):
+            vKeyType = IDB_TYPES[vKeyType]
+
         if len(vValues) == 1:
             vValues = vValues[0]
             if vKeyType == None: # guess the type of the value
@@ -128,7 +130,8 @@ def GetDBValue(aDir):
                         elif vValues[i][0]  == '\'' and vValues[i][-1]  == '\'':
                             vValues[i] = vValues[1:-1]
 
-                CreateDBString(vKeyTypeDir, IDB_LTYPES[vKeyType])
+                logger.warning("'%s' missing value type as '%s' added!" % aDir, IDB_LTYPES[vKeyType])
+                WriteFileValue(aDir, IDB_LTYPES[vKeyType], IDB_KEY_TYPE_NAME)
             else:
                 vValues = vKeyType(vValues)
         return vValues

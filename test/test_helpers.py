@@ -8,7 +8,6 @@ import base_test
 
 from os import path
 from idb.utils import RandomString, GetDirCount
-from idb.helpers import CreateDBString, GetFileValue, GetDBValue
 from shutil import rmtree
 from base_test import BaseTest, ROOT_DIR
 

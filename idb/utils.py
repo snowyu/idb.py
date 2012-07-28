@@ -6,9 +6,32 @@ import os
 import errno
 
 from os import path
+from xattr import xattr
 
 def RandomString(size=6, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for x in range(size))
+
+def GetXattrValue(aFile, aKey):
+    result = None
+    x = xattr(aFile)
+    try:
+        result = x[aKey]
+    except (KeyError, IOError) as e:
+        if type(e) == IOError:
+            if e.errno  != errno.ENOENT: # No Such File
+                raise
+    return result
+
+def IsXattrValueExists(aFile, aKey):
+    result = False
+    x = xattr(aFile)
+    try:
+        result = x.has_key(aKey)
+    except (KeyError, IOError) as e:
+        if type(e) == IOError:
+            if e.errno  != errno.ENOENT: # No Such File
+                raise
+    return result
 
 # return the dir's count in aDir
 def GetDirCount(aDir):
