@@ -22,10 +22,20 @@ IDB_SPEC_VER = 0.2
 
 IDB_KEY_TYPE_NAME = '.type'
 IDB_VALUE_NAME = '.value'
-IDB_TYPES = {'string': str, 'object': dict, 'integer': int, 'hex': Str2Hex, 'float': float, 'boolean': Str2Bool}
-IDB_LTYPES = {str: 'String', dict: 'Object', int: 'Integer', hex: 'Hex', float: 'Float', bool: 'Boolean'}
 
 logger = logging.getLogger(__name__)
+
+
+EIDBNODIR  =  -100 # No DB DIR Specified
+EIDBKEYEXISTS = -101 # the Key is already Exists.
+EIDBNOSUCHKEY = -102 # No Such Key is exists.
+
+class iDBError(Exception):
+    def __init__(self, errno, msg):
+        self.errno  = errno
+        self.message = msg
+    def __str__(self):
+        return repr(self.message)
 
 def IsFileValueExists(aDir, aAttriubte=IDB_VALUE_NAME, aDBVersion=IDB_SPEC_VER):
     result = IsXattrValueExists(aDir, aAttriubte)
@@ -74,10 +84,53 @@ def WriteFileValue(aDir, aValue, aAttriubte=IDB_VALUE_NAME, aCached = True):
         with open(aFile, 'w') as f:
             f.write(aAttriubte)
 
+def RemoveFileValue(aDir):
+    rmtree(aDir)
+
+# the Conversion functions:
+IDB_TYPES = {'String': str, 'Object': dict, 'Integer': int, 'Hex': Str2Hex, 'Float': float, 'Boolean': Str2Bool}
+IDB_LTYPES = {str: 'String', dict: 'Object', int: 'Integer', hex: 'Hex', float: 'Float', bool: 'Boolean'}
+
+def String2FieldValue(aStr, aType):
+    result = aStr
+    if IDB_TYPES.has_key(aType):
+        result = IDB_TYPES[aType](result)
+    else:
+        logger.warning("Field2String: Unkown Field Type '%s' treat as String type" % aType)
+    return result
+
+def FieldValue2String(aValue, aType):
+    result = None
+    if aType == 'Hex':
+        result = hex(aValue)
+    else:
+        result = str(aValue)
+    return result
+
 # the helper functions to operate the iDB
-def CreateDBValue(aDir,  aValue, aValueType):
+def CreateDBValue(aDir, aValue, aValueType, aCached = True, aDBVersion=IDB_SPEC_VER):
     """
     """
+    if not IsFileValueExists(aDir, IDB_VALUE_NAME, aDBVersion):
+        WriteFileValue(aDir, aValue, IDB_VALUE_NAME, aCached)
+        WriteFileValue(aDir, aValueType, IDB_KEY_TYPE_NAME, aCached)
+    else:
+        raise iDBError(EIDBKEYEXISTS, "add key error: the key(%s) is already exists!" % aDir)
+
+def UpdateDBValue(aDir, aValue, aValueType, aCached = True, aDBVersion=IDB_SPEC_VER):
+    if IsFileValueExists(aDir, IDB_VALUE_NAME, aDBVersion):
+        WriteFileValue(aDir, aValue, IDB_VALUE_NAME, aCached)
+        WriteFileValue(aDir, aValueType, IDB_KEY_TYPE_NAME, aCached)
+    else:
+        raise iDBError(EIDBNOSUCHKEY, "Update key error: No such key(%s) exists!" % aDir)
+
+def PutDBValue(aDir, aValue, aValueType, aCached = True, aDBVersion=IDB_SPEC_VER):
+    WriteFileValue(aDir, aValue, IDB_VALUE_NAME, aCached)
+    WriteFileValue(aDir, aValueType, IDB_KEY_TYPE_NAME, aCached)
+
+def DeleteDBValue(aDir):
+    RemoveFileValue(aDir)
+
 def GetDBValue(aDir, aDBVersion=IDB_SPEC_VER):
     vValues = ReadFileValue(aDir, IDB_VALUE_NAME, aDBVersion)
     if len(vValues) > 0:
@@ -92,48 +145,45 @@ def GetDBValue(aDir, aDBVersion=IDB_SPEC_VER):
                 if vValues[0] == '$':
                     try:
                         vValues  = int(vValues[1:], 16)
-                        vKeyType = hex
+                        vKeyType = 'Hex'
                     except ValueError:
                         pass
                 if vKeyType == None:
                     if (vValues[i][0]  == '"' and vValues[i][-1]  == '"'):
                         vValues[i] = vValues[1:-1]
-                        vKeyType = str
+                        vKeyType = 'String'
                     elif (vValues[i][0]  == '\'' and vValues[i][-1]  == '\''):
-                        vValues[i] = vValues[1:-1]
-                        vKeyType = str
+                        vValues[i] = vValues[1:-1] # remove quote
+                        vKeyType = 'String'
 
                 if vKeyType == None:
                     try:
                         vValues  = int(vValues)
-                        vKeyType = int
+                        vKeyType = 'Integer'
                     except ValueError:
                         pass
                 if vKeyType == None:
                     try:
                         vValues  = float(vValues)
-                        vKeyType = float
+                        vKeyType = 'Float'
                     except ValueError:
                         pass
                 if vKeyType == None:
                     try:
                         vValues = Str2Bool(vValues)
-                        vKeyType = bool
+                        vKeyType = 'Boolean'
                     except ValueError:
                         pass
                 if vKeyType == None:
-                    vKeyType = str
-                    # remove quote if any
-                    for i, value in enumerate(vValues):
-                        if vValues[i][0]  == '"' and vValues[i][-1]  == '"':
-                            vValues[i] = vValues[1:-1]
-                        elif vValues[i][0]  == '\'' and vValues[i][-1]  == '\'':
-                            vValues[i] = vValues[1:-1]
+                    vKeyType = 'String'
 
-                logger.warning("'%s' missing value type as '%s' added!" % aDir, IDB_LTYPES[vKeyType])
-                WriteFileValue(aDir, IDB_LTYPES[vKeyType], IDB_KEY_TYPE_NAME)
+                logger.warning("'%s' missing value type as '%s' added!" % aDir, vKeyType)
+                WriteFileValue(aDir, vKeyType, IDB_KEY_TYPE_NAME)
             else:
-                vValues = vKeyType(vValues)
+                vValues = String2FieldValue(vValues)
+        else: #multi-values here
+            """
+            """
         return vValues
 
 

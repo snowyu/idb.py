@@ -7,30 +7,13 @@ import glob
 from os import path
 
 from utils import CreateDir
-from helpers import IDB_SPEC_VER, GetDBValue
-
-# No DB DIR Specified
-EIDBNODIR  =  -100
-
-class iDBError(Exception):
-    def __init__(self, errno, msg):
-        self.errno  = errno
-        self.message = msg
-    def __str__(self):
-        return repr(self.message)
+from helpers import IDB_SPEC_VER, GetDBValue, iDBError
+from helpers import EIDBNODIR
 
 class iValue(object):
     def __init__(self, aType, aValue):
         self.ValueType = aType
         self.value = aValue
-
-# Convert the DBValue to String
-def DBValue2Str(aValue, aType):
-    """
-    """
-def Str2DBValue(aStr, aType):
-    """
-    """
 
 class iDB(object):
     """
