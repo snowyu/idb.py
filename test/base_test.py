@@ -5,9 +5,10 @@ import pytest
 import unittest
 import os
 from os import path
-from idb.utils import RandomString
 from shutil import rmtree
-from idb.helpers import WriteFileValue, ReadFileValue, GetDBValue, IDB_VALUE_NAME
+
+from idb.utils import RandomString
+from idb.helpers import WriteFileValue, ReadFileValue, GetDBValue, RemoveFileValue, IDB_VALUE_NAME
 
 ROOT_DIR = './mytestdb'
 FIXTURE_DIR = path.join(path.realpath(__file__), 'fixtures')
@@ -28,19 +29,37 @@ def create_pairs(aSize = 99, aCached = True):
         WriteFileValue(vDir, vStr, IDB_VALUE_NAME, aCached)
     return pairs
 
-def check_pairs(pairs, wanted_result = True):
-    for item in pairs:
-        vDir =  path.join(ROOT_DIR, item['key'])
-        vWantedStr = item['value']
-        vStr = ReadFileValue(vDir)
+def delete_pairs(aPairs):
+    for item in aPairs:
+        vDir = path.join(ROOT_DIR, item['key'])
+        RemoveFileValue(vDir)
+
+def check_pair(aKey, aValue, aAttriubte=IDB_VALUE_NAME, wanted_result = True):
+    vDir = path.join(ROOT_DIR, aKey)
+    if wanted_result:
+        assert path.isdir(vDir)
+    else:
+        check_key_removed(aKey)
+    vWantedStr = aValue
+    vStr = ReadFileValue(vDir, aAttriubte)
+    if wanted_result:
         assert len(vStr) == 1
         vStr = vStr[0]
-        if wanted_result:
-            assert vStr == vWantedStr
-        else:
-            assert vStr != vWantedStr
-        vStr = ReadFileValue(vDir + RandomString(6))
+    if wanted_result:
+        assert vStr == vWantedStr
+    else:
         assert vStr == None
+    vStr = ReadFileValue(vDir + RandomString(6))
+    assert vStr == None
+    
+def check_key_removed(aKey):
+    vDir = path.join(ROOT_DIR, aKey)
+    assert not path.isdir(vDir)
+    assert not path.isfile(vDir)
+
+def check_pairs(pairs, wanted_result = True):
+    for item in pairs:
+        check_pair(item['key'], item['value'], IDB_VALUE_NAME, wanted_result)
 
 class BaseTest(unittest.TestCase):
     def setUp(self):

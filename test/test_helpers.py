@@ -20,4 +20,10 @@ class TestIDBHelpers(BaseTest):
         pairs = base_test.create_pairs(199, False)
         assert GetDirCount(ROOT_DIR) == len(pairs)
         base_test.check_pairs(pairs)
+    def test_DeleteKey(self):
+        pairs = base_test.create_pairs(199)
+        assert GetDirCount(ROOT_DIR) == len(pairs)
+        base_test.delete_pairs(pairs)
+        assert GetDirCount(ROOT_DIR) == 0
+        base_test.check_pairs(pairs, False)
 
