@@ -47,18 +47,22 @@ def IsFileValueExists(aDir, aAttriubte=IDB_VALUE_NAME, aDBVersion=IDB_SPEC_VER):
         result = len(glob.glob(aFile)) > 0 # Search dir by pattern
     return result
 
+def ReadFileValueFromCache(aDir, aAttriubte=IDB_VALUE_NAME):
+    result = None
+    vFile = path.join(aDir, aAttriubte)
+    try:
+        result = [line.strip() for line in open(vFile, 'r')]
+    except IOError as e:
+        if e.errno != errno.ENOENT: # No Such File
+            raise
+    return result
 def ReadFileValue(aDir, aAttriubte=IDB_VALUE_NAME, aDBVersion=IDB_SPEC_VER):
     """
     """
     result = GetXattrValue(aDir, aAttriubte)
     if result == None:
         # It's the backup of the value.
-        aFile = path.join(aDir, aAttriubte)
-        try:
-            result = [line.strip() for line in open(aFile, 'r')]
-        except IOError as e:
-            if e.errno != errno.ENOENT: # No Such File
-                raise
+        result = ReadFileValueFromCache(aDir, aAttriubte)
     else:
         result = [result]
     if result == None and aDBVersion <= 0.1 and aAttriubte == IDB_VALUE_NAME: # just keep backcompatible
@@ -66,6 +70,11 @@ def ReadFileValue(aDir, aAttriubte=IDB_VALUE_NAME, aDBVersion=IDB_SPEC_VER):
         result = glob.glob(aFile) # Search dir by pattern
         result = [value.replace(path.join(aDir, '='),'') for value in result] #remove the prefix "="
     return result
+
+def WriteFileValueToCache(aDir, aValue, aAttriubte=IDB_VALUE_NAME):
+    vFile = path.join(aDir, aAttriubte)
+    with open(vFile, 'w') as f:
+        f.write(aValue)
 
 # the aDir MUST BE urllib.quote_plus(aDir, '/') first!
 # the aString MUST BE urllib.quote_plus(aString) first!
@@ -80,9 +89,7 @@ def WriteFileValue(aDir, aValue, aAttriubte=IDB_VALUE_NAME, aCached = True):
     x[aAttriubte] = aValue
     #TouchFile(aFile)
     if aCached:
-        aFile = path.join(aDir, aAttriubte)
-        with open(aFile, 'w') as f:
-            f.write(aAttriubte)
+        WriteFileValueToCache(aDir, aValue, aAttriubte)
 
 def RemoveFileValue(aDir):
     rmtree(aDir)
