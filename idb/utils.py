@@ -75,19 +75,23 @@ def TouchFile(aFileName, aTimeStamp = None):
 
 # the Conversion functions:
 def Str2Int(value):
-    base = 10
-    if value[0]  == '$':
-        value = value[1:]
-        base = 16
-    elif value[0:2] == '0x':
-        value = value[2:]
-        base = 16
-    if value[0] == '"' and value[-1] == '"':
-        value = [1:-1]
-    elif value[0] == "'" and value[-1] == "'":
-        value = [1:-1]
+    if value != None:
+        base = 10
+        if value[0]  == '$':
+            value = value[1:]
+            base = 16
+        elif value[0:2] == '0x':
+            value = value[2:]
+            base = 16
+        if value[0] == '"' and value[-1] == '"':
+            value = [1:-1]
+        elif value[0] == "'" and value[-1] == "'":
+            value = [1:-1]
+        result = int(value, base)
+    else:
+        result = None
 
-    return int(value, base)
+    return result
 
 def Str2Hex(value):
     if value[0]  == '$':
