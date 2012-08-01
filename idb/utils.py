@@ -22,6 +22,18 @@ def GetXattrValue(aFile, aKey):
                 raise
     return result
 
+def SetXattrValue(aFile, aKey, aValue):
+    result = None
+    x = xattr(aFile)
+    try:
+        x[aKey] = aValue
+        result  = True
+    except (KeyError, IOError) as e:
+        if type(e) == IOError:
+            if e.errno  != errno.ENOENT: # No Such File
+                raise
+    return result
+
 def IsXattrValueExists(aFile, aKey):
     result = False
     x = xattr(aFile)
@@ -62,6 +74,21 @@ def TouchFile(aFileName, aTimeStamp = None):
         #    fhandle.close()
 
 # the Conversion functions:
+def Str2Int(value):
+    base = 10
+    if value[0]  == '$':
+        value = value[1:]
+        base = 16
+    elif value[0:2] == '0x':
+        value = value[2:]
+        base = 16
+    if value[0] == '"' and value[-1] == '"':
+        value = [1:-1]
+    elif value[0] == "'" and value[-1] == "'":
+        value = [1:-1]
+
+    return int(value, base)
+
 def Str2Hex(value):
     if value[0]  == '$':
         value = value[1:]
