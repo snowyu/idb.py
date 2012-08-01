@@ -19,7 +19,7 @@ class iDB(object):
     def _get(self, aKey, aValueType):
         """
         """
-    def __init_parms__(self, connection):
+    def __init_parms__(self,  **connection):
         kw_defaults = {path: '', cache: True}
         for key, value in kw_defaults.iteritems():
             if connection.has_key(key):
