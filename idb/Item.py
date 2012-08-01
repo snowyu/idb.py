@@ -1,6 +1,8 @@
 # the abstract Item Class for iDB KeyValue Storage:
 #
 #
+# myItem = Item.LoadFrom(path = '/dd/dff', key = 'myKey', cache=False)
+#
 #
 from os import path
 
@@ -14,7 +16,26 @@ class Item(object):
         # create a new original data instance:
         # return int(aData)
         # THE DERIVIED CLASS MUST BE OVERRIDE
-        return None
+        result = object()
+        if aData:
+            result.data = aData
+        return result
+    def __new__(cls,  aData, **kwargs):
+        result = cls.new_data(aData)
+        # the path is the database path
+        # the key is the list's key
+        kw_defaults = {path: '', cache: True, key: ''}
+        for key, value in kw_defaults.iteritems():
+            if kwargs.has_key(key):
+                val = kwargs[key]
+            else:
+                val = value
+            setattr(result, key, val)
+        if result.path  ==  '':
+            raise iDBError(EIDBNODIR, 'Please specify the database directory first!')
+        result.cache = bool(result.cache)
+        #result.data = aData
+        return result
     @staticmethod
     def delete(aPath, aKey):
         vDir  = path.join(aPath, aKey)
@@ -58,11 +79,13 @@ class Item(object):
     def SaveToCache(self, aKey):
         self.set_by_cache(self.path, aKey, self.data)
     @classmethod
-    def LoadFrom(cls, aData, **kwargs):
+    def LoadFrom(cls, **kwargs):
         #result = super(Integer, cls).__new__(cls, aInt)
-        result = cls.new_data(aData)
+        #result = cls.new_data(None)
+        result  = cls(None, kwargs)
         # the path is the database path
         # the key is the list's key
+        """
         kw_defaults = {path: '', cache: True, key: ''}
         for key, value in kw_defaults.iteritems():
             if kwargs.has_key(key):
@@ -70,6 +93,7 @@ class Item(object):
             else:
                 val = value
             setattr(result, key, val)
+        """
         data = get_by_dir(result.path, result.key)
         if data == None and result.cache: 
           data = get_by_cache(result.path, result.key)

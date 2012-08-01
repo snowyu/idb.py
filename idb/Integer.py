@@ -12,6 +12,13 @@ from Item import Item
 
 
 class Integer(int, Item):
+    @staticmethod
+    def new_data(aData):
+        if aData:
+            result = int(aData)
+        else:
+            result = int()
+        return result
     # Int is immutable class, so I have to use new classmethod.
     def __new__(cls,  aInt, **kwargs):
         result = super(Integer, cls).__new__(cls, aInt)
