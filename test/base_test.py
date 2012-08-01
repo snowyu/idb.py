@@ -63,6 +63,7 @@ def check_pairs(pairs, wanted_result = True):
 
 class BaseTest(unittest.TestCase):
     def setUp(self):
+        self.path = ROOT_DIR
         rmtree(ROOT_DIR,  True)
     def tearDown(self):
         rmtree(ROOT_DIR, True)
