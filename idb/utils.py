@@ -84,9 +84,9 @@ def Str2Int(value):
             value = value[2:]
             base = 16
         if value[0] == '"' and value[-1] == '"':
-            value = [1:-1]
+            value = value[1:-1]
         elif value[0] == "'" and value[-1] == "'":
-            value = [1:-1]
+            value = value[1:-1]
         result = int(value, base)
     else:
         result = None
