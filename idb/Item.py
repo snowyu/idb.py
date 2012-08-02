@@ -126,8 +126,8 @@ class Item(object):
         if options['path']  ==  '':
             raise iDBError(EIDBNODIR, 'Please specify the database directory first!')
         data = cls.get_by_dir(options['path'], options['key'])
-        if data == None and options['cache']: 
-          data = result.get_by_cache(options['path'], options['key'])
+        if data == None and options['cache']:
+            data = result.get_by_cache(options['path'], options['key'])
         if data  == None:
             raise iDBError(EIDBNOSUCHKEY, "Error: No Such Key(%s) Exists." % path.join(result.path, result.key))
 
@@ -178,6 +178,8 @@ class Item(object):
         return self.data > value
     def __ge__(self, value):
         return self.data > value
+    def __hash__(self):
+        return self.data.__hash__()
     def __str__(self):
         return str(self.data)
     def __repr__(self):
