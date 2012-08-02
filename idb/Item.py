@@ -6,35 +6,40 @@
 #
 from os import path
 
+from utils import CreateDir, SetXattrValue, GetXattrValue
 from helpers import IDB_SPEC_VER, WriteFileValueToCache, ReadFileValueFromCache, DeleteDBValue, iDBError
 from helpers import EIDBNODIR, IDB_VALUE_NAME, IDB_KEY_TYPE_NAME
 
 
 class Item(object):
     @staticmethod
-    def new_data(aData):
-        # create a new original data instance:
-        # return int(aData)
-        # THE DERIVIED CLASS MUST BE OVERRIDE
-        result = object()
-        if aData:
-            result.data = aData
-        return result
-    def __new__(cls,  aData, **kwargs):
-        result = cls.new_data(aData)
-        # the path is the database path
-        # the key is the list's key
-        kw_defaults = {path: '', cache: True, key: ''}
+    def get_options(**kwargs):
+        result = {}
+        kw_defaults = { 'path': '', 'cache': True, 'key': '' }
         for key, value in kw_defaults.iteritems():
             if kwargs.has_key(key):
-                val = kwargs[key]
+                result[key] = kwargs[key]
             else:
-                val = value
-            setattr(result, key, val)
+                result[key] = value
+        return result
+    @classmethod
+    def new_data(cls, aData):
+        if aData  == None:
+            aData = 0
+        result = super(Item, cls).__new__(cls, aData)
+        result.data = int(aData)
+        return result
+    @classmethod
+    def new(cls,  aData, aNewFunc, **kwargs):
+        result = aNewFunc(aData)
+        # the path is the database path
+        # the key is the list's key
+        options = cls.get_options(** kwargs)
+        for key, value in options.iteritems():
+            setattr(result, key, value)
         if result.path  ==  '':
             raise iDBError(EIDBNODIR, 'Please specify the database directory first!')
         result.cache = bool(result.cache)
-        #result.data = aData
         return result
     @staticmethod
     def delete(aPath, aKey):
@@ -63,7 +68,7 @@ class Item(object):
     @classmethod
     def set_by_cache(cls, aPath, aKey, aValue):
         vDir = path.join(aPath, aKey)
-        WriteFileValueToCache(vDir, aValue, IDB_VALUE_NAME)
+        WriteFileValueToCache(vDir, str(aValue), IDB_VALUE_NAME)
         WriteFileValueToCache(vDir, cls.__name__, IDB_KEY_TYPE_NAME)
     def LoadFromDir(self, aKey):
         # load the item from the aKey
@@ -71,51 +76,44 @@ class Item(object):
         if result != None:
             self.data = result
     def SaveToDir(self, aKey):
-        self.set_by_dir(self.path, aKey, self.data)
+        self.set_by_dir(self.path, aKey, self)
     def LoadFromCache(self, aKey):
         result = get_by_cache(self.path, aKey)
         if result != None:
             self.data = result
     def SaveToCache(self, aKey):
-        self.set_by_cache(self.path, aKey, self.data)
+        self.set_by_cache(self.path, aKey, self)
     @classmethod
     def LoadFrom(cls, **kwargs):
-        #result = super(Integer, cls).__new__(cls, aInt)
-        #result = cls.new_data(None)
-        result  = cls(None, kwargs)
-        # the path is the database path
-        # the key is the list's key
-        """
-        kw_defaults = {path: '', cache: True, key: ''}
-        for key, value in kw_defaults.iteritems():
-            if kwargs.has_key(key):
-                val = kwargs[key]
-            else:
-                val = value
-            setattr(result, key, val)
-        """
-        data = get_by_dir(result.path, result.key)
-        if data == None and result.cache: 
-          data = get_by_cache(result.path, result.key)
+        options = cls.get_options(** kwargs)
+        if options['path']  ==  '':
+            raise iDBError(EIDBNODIR, 'Please specify the database directory first!')
+        data = cls.get_by_dir(options['path'], options['key'])
+        if data == None and options['cache']: 
+          data = result.get_by_cache(options['path'], options['key'])
         if data  == None:
             raise iDBError(EIDBNOSUCHKEY, "Error: No Such Key(%s) Exists." % path.join(result.path, result.key))
-        result.data = data
+
+        # create a new instance
+        result  = cls(data,  ** kwargs)
+        #result.data = data
+
         return result
 
     def SaveTo(self, aKey,  **kwargs):
+        self.SaveToDir(aKey)
         cache = self.cache
         if kwargs.has_key('cache'):
             cache = kwargs['cache']
         if cache:
-            SaveToCache(self, aKey)
-        SaveToDir(self, aKey)
+            self.SaveToCache(aKey)
     def Load(self):
         cache = self.cache
         if kwargs.has_key('cache'):
             cache = kwargs['cache']
-        result = LoadFromDir(self, self.key)
+        result = self.LoadFromDir(self.key)
         if not result and cache:
-            result = LoadFromCache(self, self.key)
+            result = self.LoadFromCache(self.key)
         if result  == None:
             raise iDBError(EIDBNOSUCHKEY, "Error: No Such Key(%s) Exists." % path.join(result.path, result.key))
         return result
@@ -124,33 +122,9 @@ class Item(object):
     def Delete(self):
         delete(self.path, self.key)
 
-    def __add__(self, value):
-        result = self.data + value
-        return type(self)(result, path=self.path, cache=self.cache, key=self.key)
-    def __mul__(self, value):
-        result = self.data * value
-        return type(self)(result, path=self.path, cache=self.cache, key=self.key)
-    def __mod__(self, value):
-        result = self.data % value
-        return type(self)(result, path=self.path, cache=self.cache, key=self.key)
-    def __div__(self, value):
-        result = self.data / value
-        return type(self)(result, path=self.path, cache=self.cache, key=self.key)
-    def __pow__(self, value):
-        result = self.data  **  value
-        return type(self)(result, path=self.path, cache=self.cache, key=self.key)
-    def __neg__(self): # negation -self
-        result = -self.data
-        return type(self)(result, path=self.path, cache=self.cache, key=self.key)
-    def __pos__(self): # Positive +self
-        result = +self.data
-        return type(self)(result, path=self.path, cache=self.cache, key=self.key)
-    def __rshift__(self, value):
-        result = self.data  >>  value
-        return type(self)(result, path=self.path, cache=self.cache, key=self.key)
-    def __lshift__(self, value):
-        result = self.data  << value
-        return type(self)(result, path=self.path, cache=self.cache, key=self.key)
+    def __cast(self, other):
+        if isinstance(other, Item): return other.data
+        else: return other
     def __lt__(self, value):
         return self.data < value
     def __le__(self, value):
