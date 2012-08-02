@@ -4,9 +4,10 @@
 # myItem = Item.LoadFrom(path = '/dd/dff', key = 'myKey', cache=False)
 #
 #
+import urllib
 from os import path
 
-from utils import CreateDir, SetXattrValue, GetXattrValue
+from utils import CreateDir, SetXattrValue, GetXattrValue, IsXattrValueExists
 from helpers import IDB_SPEC_VER, WriteFileValueToCache, ReadFileValueFromCache, DeleteDBValue, iDBError
 from helpers import EIDBNODIR, IDB_VALUE_NAME, IDB_KEY_TYPE_NAME
 
@@ -36,11 +37,19 @@ class Item(object):
         # the key is the list's key
         options = cls.get_options(** kwargs)
         for key, value in options.iteritems():
-            setattr(result, key, value)
+            setattr(result, '_' + key, value)
         if result.path  ==  '':
             raise iDBError(EIDBNODIR, 'Please specify the database directory first!')
-        result.cache = bool(result.cache)
+        result.cache = result._cache
+        result.key = result._key
         return result
+    @staticmethod
+    def exists_by_dir(aPath, aKey):
+        vDir  = path.join(aPath, aKey)
+        return IsXattrValueExists(vDir, IDB_VALUE_NAME)
+    def exists_by_cache(aPath, aKey):
+        vFile = path.join(aPath, aKey, IDB_VALUE_NAME)
+        return path.isfile(vFile)
     @staticmethod
     def delete(aPath, aKey):
         vDir  = path.join(aPath, aKey)
@@ -70,18 +79,46 @@ class Item(object):
         vDir = path.join(aPath, aKey)
         WriteFileValueToCache(vDir, str(aValue), IDB_VALUE_NAME)
         WriteFileValueToCache(vDir, cls.__name__, IDB_KEY_TYPE_NAME)
-    def LoadFromDir(self, aKey):
+    @property
+    def key(self):
+        return urllib.unquote(self._key)
+    @key.setter
+    def key(self, value):
+        self._key = urllib.quote(value, '/ ')
+    @property
+    def path(self):
+        return self._path
+    @path.setter
+    def path(self, value):
+        self._path = value
+    @property
+    def cache(self):
+        return self._cache
+    @cache.setter
+    def cache(self, value):
+        self._cache = bool(value)
+    def LoadFromDir(self, aKey=None):
         # load the item from the aKey
+        if aKey == None:
+            aKey = self.key
         result = get_by_dir(self.path, aKey)
-        if result != None:
-            self.data = result
-    def SaveToDir(self, aKey):
+        if result  == None:
+            raise iDBError(EIDBNOSUCHKEY, "Error: No Such Key(%s) Exists." % path.join(self.path, self.key))
+        self.data = result
+    def SaveToDir(self, aKey=None):
+        if aKey == None:
+            aKey = self.key
         self.set_by_dir(self.path, aKey, self)
-    def LoadFromCache(self, aKey):
+    def LoadFromCache(self, aKey=None):
+        if aKey == None:
+            aKey = self.key
         result = get_by_cache(self.path, aKey)
-        if result != None:
-            self.data = result
-    def SaveToCache(self, aKey):
+        if result  == None:
+            raise iDBError(EIDBNOSUCHKEY, "Error: No Such Key(%s) Exists." % path.join(self.path, self.key))
+        self.data = result
+    def SaveToCache(self, aKey=None):
+        if aKey == None:
+            aKey = self.key
         self.set_by_cache(self.path, aKey, self)
     @classmethod
     def LoadFrom(cls, **kwargs):
@@ -121,7 +158,11 @@ class Item(object):
         self.SaveTo(self.key)
     def Delete(self):
         delete(self.path, self.key)
-
+    def Exists(self):
+        result = self.exists_by_dir(self.path, self.key)
+        if not result and self.cache:
+            result = self.exists_by_cache(self.path, self.key)
+        return result
     def __cast(self, other):
         if isinstance(other, Item): return other.data
         else: return other
