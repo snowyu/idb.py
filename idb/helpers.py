@@ -10,7 +10,7 @@ import utils
 from os import path
 from shutil import rmtree
 from xattr import xattr
-from urllib import quote_plus, unquote_plus
+from urllib import quote, unquote
 
 from utils import Str2Hex, Str2Bool, CreateDir, TouchFile, GetXattrValue, IsXattrValueExists
 
@@ -76,8 +76,8 @@ def WriteFileValueToCache(aDir, aValue, aAttriubte=IDB_VALUE_NAME):
     with open(vFile, 'w') as f:
         f.write(aValue)
 
-# the aDir MUST BE urllib.quote_plus(aDir, '/') first!
-# the aString MUST BE urllib.quote_plus(aString) first!
+# the aDir MUST BE urllib.quote(aDir, '/') first!
+# the aString MUST BE urllib.quote(aString) first!
 def WriteFileValue(aDir, aValue, aAttriubte=IDB_VALUE_NAME, aCached = True):
     """Create aString in aDir
     """
