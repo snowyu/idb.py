@@ -30,6 +30,8 @@ class Item(object):
         result = super(Item, cls).__new__(cls, aData)
         result.data = int(aData)
         return result
+    def __new__(cls,  aData, **kwargs):
+        return Item.new(aData, cls.new_data,  ** kwargs)
     @classmethod
     def new(cls,  aData, aNewFunc, **kwargs):
         result = aNewFunc(aData)
@@ -104,7 +106,7 @@ class Item(object):
         result = get_by_dir(self.path, aKey)
         if result  == None:
             raise iDBError(EIDBNOSUCHKEY, "Error: No Such Key(%s) Exists." % path.join(self.path, self.key))
-        self.data = result
+        self.data = self.__data__(result)
     def SaveToDir(self, aKey=None):
         if aKey == None:
             aKey = self.key
@@ -115,7 +117,7 @@ class Item(object):
         result = get_by_cache(self.path, aKey)
         if result  == None:
             raise iDBError(EIDBNOSUCHKEY, "Error: No Such Key(%s) Exists." % path.join(self.path, self.key))
-        self.data = result
+        self.data = self.__data__(result)
     def SaveToCache(self, aKey=None):
         if aKey == None:
             aKey = self.key
@@ -132,7 +134,7 @@ class Item(object):
             raise iDBError(EIDBNOSUCHKEY, "Error: No Such Key(%s) Exists." % path.join(result.path, result.key))
 
         # create a new instance
-        result  = cls(data,  ** kwargs)
+        result  = cls(cls.__data__(data),  ** kwargs)
         #result.data = data
 
         return result
@@ -180,10 +182,15 @@ class Item(object):
         return self.data > value
     def __hash__(self):
         return self.data.__hash__()
-    def __str__(self):
-        return str(self.data)
     def __repr__(self):
         return str(self.data)
     def __cmp__(self, value):
         return cmp(self.data, value)
+    # convert data to str
+    def __str__(self):
+        return str(self.data)
+    # convert str to data
+    @staticmethod
+    def __data__(aStr):
+        return aStr
 
