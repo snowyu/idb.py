@@ -47,7 +47,7 @@ def IsFileValueExists(aDir, aAttriubte=IDB_VALUE_NAME, aDBVersion=IDB_SPEC_VER):
         result = len(glob.glob(aFile)) > 0 # Search dir by pattern
     return result
 
-def ReadFileValueFromCache(aDir, aAttriubte=IDB_VALUE_NAME):
+def ReadFileValueFromBackup(aDir, aAttriubte=IDB_VALUE_NAME):
     result = None
     vFile = path.join(aDir, aAttriubte)
     try:
@@ -62,7 +62,7 @@ def ReadFileValue(aDir, aAttriubte=IDB_VALUE_NAME, aDBVersion=IDB_SPEC_VER):
     result = GetXattrValue(aDir, aAttriubte)
     if result == None:
         # It's the backup of the value.
-        result = ReadFileValueFromCache(aDir, aAttriubte)
+        result = ReadFileValueFromBackup(aDir, aAttriubte)
     else:
         result = [result]
     if result == None and aDBVersion <= 0.1 and aAttriubte == IDB_VALUE_NAME: # just keep backcompatible
@@ -71,14 +71,14 @@ def ReadFileValue(aDir, aAttriubte=IDB_VALUE_NAME, aDBVersion=IDB_SPEC_VER):
         result = [value.replace(path.join(aDir, '='),'') for value in result] #remove the prefix "="
     return result
 
-def WriteFileValueToCache(aDir, aValue, aAttriubte=IDB_VALUE_NAME):
+def WriteFileValueToBackup(aDir, aValue, aAttriubte=IDB_VALUE_NAME):
     vFile = path.join(aDir, aAttriubte)
     with open(vFile, 'w') as f:
         f.write(aValue)
 
 # the aDir MUST BE urllib.quote(aDir, '/') first!
 # the aString MUST BE urllib.quote(aString) first!
-def WriteFileValue(aDir, aValue, aAttriubte=IDB_VALUE_NAME, aCached = True):
+def WriteFileValue(aDir, aValue, aAttriubte=IDB_VALUE_NAME, aBackup = True):
     """Create aString in aDir
     """
     #aFile = path.join(aDir, '=' + aString)
@@ -88,8 +88,8 @@ def WriteFileValue(aDir, aValue, aAttriubte=IDB_VALUE_NAME, aCached = True):
     x = xattr(aDir)
     x[aAttriubte] = aValue
     #TouchFile(aFile)
-    if aCached:
-        WriteFileValueToCache(aDir, aValue, aAttriubte)
+    if aBackup:
+        WriteFileValueToBackup(aDir, aValue, aAttriubte)
 
 def RemoveFileValue(aDir):
     rmtree(aDir)
@@ -115,25 +115,25 @@ def FieldValue2String(aValue, aType):
     return result
 
 # the helper functions to operate the iDB
-def CreateDBValue(aDir, aValue, aValueType, aCached = True, aDBVersion=IDB_SPEC_VER):
+def CreateDBValue(aDir, aValue, aValueType, aBackup = True, aDBVersion=IDB_SPEC_VER):
     """
     """
     if not IsFileValueExists(aDir, IDB_VALUE_NAME, aDBVersion):
-        WriteFileValue(aDir, aValue, IDB_VALUE_NAME, aCached)
-        WriteFileValue(aDir, aValueType, IDB_KEY_TYPE_NAME, aCached)
+        WriteFileValue(aDir, aValue, IDB_VALUE_NAME, aBackup)
+        WriteFileValue(aDir, aValueType, IDB_KEY_TYPE_NAME, aBackup)
     else:
         raise iDBError(EIDBKEYEXISTS, "add key error: the key(%s) is already exists!" % aDir)
 
-def UpdateDBValue(aDir, aValue, aValueType, aCached = True, aDBVersion=IDB_SPEC_VER):
+def UpdateDBValue(aDir, aValue, aValueType, aBackup = True, aDBVersion=IDB_SPEC_VER):
     if IsFileValueExists(aDir, IDB_VALUE_NAME, aDBVersion):
-        WriteFileValue(aDir, aValue, IDB_VALUE_NAME, aCached)
-        WriteFileValue(aDir, aValueType, IDB_KEY_TYPE_NAME, aCached)
+        WriteFileValue(aDir, aValue, IDB_VALUE_NAME, aBackup)
+        WriteFileValue(aDir, aValueType, IDB_KEY_TYPE_NAME, aBackup)
     else:
         raise iDBError(EIDBNOSUCHKEY, "Update key error: No such key(%s) exists!" % aDir)
 
-def PutDBValue(aDir, aValue, aValueType, aCached = True, aDBVersion=IDB_SPEC_VER):
-    WriteFileValue(aDir, aValue, IDB_VALUE_NAME, aCached)
-    WriteFileValue(aDir, aValueType, IDB_KEY_TYPE_NAME, aCached)
+def PutDBValue(aDir, aValue, aValueType, aBackup = True, aDBVersion=IDB_SPEC_VER):
+    WriteFileValue(aDir, aValue, IDB_VALUE_NAME, aBackup)
+    WriteFileValue(aDir, aValueType, IDB_KEY_TYPE_NAME, aBackup)
 
 def DeleteDBValue(aDir):
     RemoveFileValue(aDir)
