@@ -99,6 +99,9 @@ class Item(object):
     @backup.setter
     def backup(self, value):
         self._backup = bool(value)
+    # Get the current options to pass through
+    def GetOptions(self):
+        return {'backup': self._backup}
     def LoadFromDir(self, aKey=None):
         # load the item from the aKey
         if aKey == None:
@@ -146,7 +149,7 @@ class Item(object):
             backup = kwargs['backup']
         if backup:
             self.SaveToBackup(aKey)
-    def Load(self):
+    def Load(self,  **kwargs):
         backup = self.backup
         if kwargs.has_key('backup'):
             backup = kwargs['backup']
@@ -156,8 +159,8 @@ class Item(object):
         if result  == None:
             raise iDBError(EIDBNOSUCHKEY, "Error: No Such Key(%s) Exists." % path.join(result.path, result.key))
         return result
-    def Save(self):
-        self.SaveTo(self.key)
+    def Save(self,  **kwargs):
+        self.SaveTo(self.key,  ** kwargs)
     def Delete(self):
         delete(self.path, self.key)
     def Exists(self):
