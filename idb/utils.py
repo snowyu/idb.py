@@ -11,6 +11,17 @@ from xattr import xattr
 def RandomString(size=6, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for x in range(size))
 
+def GetXattrKeys(aFile):
+    result = None
+    x = xattr(aFile)
+    try:
+        result = x.list()
+    except (KeyError, IOError) as e:
+        if type(e) == IOError:
+            if e.errno  != errno.ENOENT: # No Such File
+                raise
+    return result
+
 def GetXattrValue(aFile, aKey):
     result = None
     x = xattr(aFile)
@@ -77,16 +88,16 @@ def TouchFile(aFileName, aTimeStamp = None):
 def Str2Int(value):
     if value != None:
         base = 10
+        if value[0] == '"' and value[-1] == '"':
+            value = value[1:-1]
+        elif value[0] == "'" and value[-1] == "'":
+            value = value[1:-1]
         if value[0]  == '$':
             value = value[1:]
             base = 16
         elif value[0:2] == '0x':
             value = value[2:]
             base = 16
-        if value[0] == '"' and value[-1] == '"':
-            value = value[1:-1]
-        elif value[0] == "'" and value[-1] == "'":
-            value = value[1:-1]
         result = int(value, base)
     else:
         result = None
