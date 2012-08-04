@@ -1,5 +1,6 @@
 # The Hex / KeyValue Class(Spec v0.2):
 
+from Item import Item
 from Integer import Integer
 
 class Hex(Integer):
@@ -9,4 +10,5 @@ class Hex(Integer):
         return hex(self.data)
     def __repr__(self):
         return hex(self.data)
- 
+
+Item.Register(Hex)

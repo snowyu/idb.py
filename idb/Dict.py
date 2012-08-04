@@ -37,11 +37,6 @@ class Dict(Item, DictMixin):
     @loadOnDemand.setter
     def loadOnDemand(self, value):
         self._loadOnDemand = bool(value)
-    def LoadItem(self, ** kwargs):
-        ItemClasses = {'String': String, 'Integer': Integer, 'Hex': Hex, 'Dict': Dict}
-        vType = self.GetItemType( ** kwargs )
-        vClass= ItemClasses[vType]
-        return vClass.LoadFrom( ** kwargs )
     @classmethod
     def get_options(cls, **kwargs):
         result = Item.get_options(** kwargs)
@@ -208,4 +203,4 @@ class Dict(Item, DictMixin):
     def has_key(self, key): return key in self.data
     def pop(self, key, *args): return self.data.pop(key,  * args)
 
-
+Item.Register(Dict)

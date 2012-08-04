@@ -2,6 +2,7 @@
 # http://docs.python.org/reference/datamodel.html#special-method-names
 
 from utils import Str2Int
+from Item import Item
 from Numberic import Numberic
 
 class Integer(Numberic, int):
@@ -20,3 +21,4 @@ class Integer(Numberic, int):
     def __data__(aStr):
         return Str2Int(aStr)
 
+Item.Register(Integer)

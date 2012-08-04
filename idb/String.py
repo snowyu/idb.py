@@ -42,5 +42,4 @@ class String(Item,  str):
             result = result[1:-1]
         return result
 
-
-
+Item.Register(String)

@@ -11,8 +11,17 @@ from utils import CreateDir, SetXattrValue, GetXattrValue, IsXattrValueExists
 from helpers import IDB_SPEC_VER, WriteFileValueToBackup, ReadFileValueFromBackup, DeleteDBValue, iDBError
 from helpers import EIDBNODIR, IDB_VALUE_NAME, IDB_KEY_TYPE_NAME
 
-
 class Item(object):
+    _ItemClasses = {}
+    @staticmethod
+    def Register(aClass):
+        Item._ItemClasses[aClass.__name__] = aClass
+    @classmethod
+    def LoadItem(cls, ** kwargs):
+        ItemClasses = Item._ItemClasses
+        vType = cls.GetItemType( ** kwargs )
+        vClass= ItemClasses[vType]
+        return vClass.LoadFrom( ** kwargs )
     @classmethod
     def get_options(cls, **kwargs):
         result = {}
