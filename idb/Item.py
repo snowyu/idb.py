@@ -13,15 +13,17 @@ from helpers import EIDBNODIR, IDB_VALUE_NAME, IDB_KEY_TYPE_NAME
 
 
 class Item(object):
-    @staticmethod
-    def get_options(**kwargs):
+    @classmethod
+    def get_options(cls, **kwargs):
         result = {}
-        kw_defaults = { 'path': '', 'backup': True, 'key': '' }
+        kw_defaults = { 'path': '', 'backup': True, 'key': '.' }
         for key, value in kw_defaults.iteritems():
             if kwargs.has_key(key):
                 result[key] = kwargs[key]
             else:
                 result[key] = value
+        if result['key'] == '':
+            result['key'] == '.'
         return result
     @classmethod
     def new_data(cls, aData):
@@ -30,7 +32,7 @@ class Item(object):
         result = super(Item, cls).__new__(cls, aData)
         result.data = int(aData)
         return result
-    def __new__(cls,  aData, **kwargs):
+    def __new__(cls,  aData=None, **kwargs):
         return Item.new(aData, cls.new_data,  ** kwargs)
     @classmethod
     def new(cls,  aData, aNewFunc, **kwargs):
@@ -38,8 +40,9 @@ class Item(object):
         # the path is the database path
         # the key is the list's key
         options = cls.get_options(** kwargs)
-        for key, value in options.iteritems():
-            setattr(result, '_' + key, value)
+        result.ApplyOptions( ** options)
+        #for key, value in options.iteritems():
+        #    setattr(result, '_' + key, value)
         if result.path  ==  '':
             raise iDBError(EIDBNODIR, 'Please specify the database directory first!')
         result.backup = result._backup
@@ -57,10 +60,10 @@ class Item(object):
         vDir  = path.join(aPath, aKey)
         DeleteDBValue(vDir)
     @staticmethod
-    def get_by_dir(aPath, aKey):
+    def get_by_dir(aPath, aKey, aAttribute=IDB_VALUE_NAME):
         # load the Integer from the aKey
         vDir = path.join(aPath, aKey)
-        result = GetXattrValue(vDir, IDB_VALUE_NAME)
+        result = GetXattrValue(vDir, aAttribute)
         return result
     @classmethod
     def set_by_dir(cls, aPath, aKey, aValue):
@@ -70,9 +73,9 @@ class Item(object):
         SetXattrValue(vDir, IDB_VALUE_NAME, str(aValue))
         SetXattrValue(vDir, IDB_KEY_TYPE_NAME, cls.__name__)
     @staticmethod
-    def get_by_backup(aPath, aKey):
+    def get_by_backup(aPath, aKey, aAttribute=IDB_VALUE_NAME):
         vDir = path.join(aPath, aKey)
-        result = ReadFileValueFromBackup(vDir, IDB_VALUE_NAME)
+        result = ReadFileValueFromBackup(vDir, aAttribute)
         if result != None:
             result = result[0]
         return result
@@ -102,6 +105,23 @@ class Item(object):
     # Get the current options to pass through
     def GetOptions(self):
         return {'backup': self._backup}
+    def ApplyOptions(self,  ** options):
+        for key, value in options.iteritems():
+            setattr(self, '_' + key, value)
+
+    @classmethod
+    def GetItemType(cls,  ** kwargs):
+        options = cls.get_options(** kwargs)
+        if options['path']  ==  '':
+            raise iDBError(EIDBNODIR, 'Please specify the database directory first!')
+        data = Item.get_by_dir(options['path'], options['key'], IDB_KEY_TYPE_NAME)
+        if data == None and options['backup']:
+            data = Item.get_by_backup(options['path'], options['key'], IDB_KEY_TYPE_NAME)
+        if data  == None:
+            raise iDBError(EIDBNOSUCHKEY, "Error: No Such Key(%s) Exists." % path.join(options['path'], options['key']))
+
+        return data
+
     def LoadFromDir(self, aKey=None):
         # load the item from the aKey
         if aKey == None:
@@ -132,9 +152,9 @@ class Item(object):
             raise iDBError(EIDBNODIR, 'Please specify the database directory first!')
         data = cls.get_by_dir(options['path'], options['key'])
         if data == None and options['backup']:
-            data = result.get_by_backup(options['path'], options['key'])
+            data = cls.get_by_backup(options['path'], options['key'])
         if data  == None:
-            raise iDBError(EIDBNOSUCHKEY, "Error: No Such Key(%s) Exists." % path.join(result.path, result.key))
+            raise iDBError(EIDBNOSUCHKEY, "Error: No Such Key(%s) Exists." % path.join(options['path'], options['key']))
 
         # create a new instance
         result  = cls(cls.__data__(data),  ** kwargs)
