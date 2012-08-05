@@ -22,7 +22,7 @@ def main():
         author='Riceball LEE',
         author_email='snowyu.lee at gmail.com',
         maintainer='Riceball LEE',
-        maintainer_email='snowyu.lee at gmail.com',
+        maintainer_email='snowyu.lee@gmail.com',
         keywords =  ['iDB', 'key-value store', 'NoSQL', 'Database'],
         classifiers=['Development Status :: 1 - Planning',
                      'Intended Audience :: Developers',
