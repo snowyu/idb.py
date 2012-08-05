@@ -92,12 +92,18 @@ def Str2Int(value):
             value = value[1:-1]
         elif value[0] == "'" and value[-1] == "'":
             value = value[1:-1]
-        if value[0]  == '$':
+        vSign = ''
+        if value[0] == '+' or value[0] == '-':
+            vSign = value[0]
+            value = value[1:]
+        if value[0] == '$':
             value = value[1:]
             base = 16
         elif value[0:2] == '0x':
             value = value[2:]
             base = 16
+        if vSign:
+            value  = vSign + value 
         result = int(value, base)
     else:
         result = None
