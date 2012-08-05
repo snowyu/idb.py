@@ -38,8 +38,8 @@ class Item(object):
     def new_data(cls, aData):
         if aData  == None:
             aData = 0
-        result = super(Item, cls).__new__(cls, aData)
-        result.data = int(aData)
+        result = super(Item, cls).__new__(cls)
+        result.data = aData
         return result
     def __new__(cls,  aData=None, **kwargs):
         return Item.new(aData, cls.new_data,  ** kwargs)
@@ -211,7 +211,7 @@ class Item(object):
     def __gt__(self, value):
         return self.data > value
     def __ge__(self, value):
-        return self.data > value
+        return self.data >= value
     def __hash__(self):
         return self.data.__hash__()
     def __repr__(self):
