@@ -13,7 +13,7 @@ def main():
     setup(
         name='iDB',
         description='iDB Library',
-        long_description = open('README.txt').read(),
+        long_description = open('README.md').read(),
         version= IDB_VER,
         url='https://github.com/snowyu/pyidb',
         download_url=  'http://cloud.github.com/downloads/snowyu/pyidb/pyidb-%s.tar.gz' % IDB_VER,
