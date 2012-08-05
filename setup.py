@@ -16,7 +16,7 @@ def main():
         long_description = open('README.md').read(),
         version= IDB_VER,
         url='https://github.com/snowyu/pyidb',
-        download_url=  'http://cloud.github.com/downloads/snowyu/pyidb/pyidb-%s.tar.gz' % IDB_VER,
+        download_url=  'https://github.com/snowyu/pyidb/tarball/%s' % IDB_VER,
         license='MIT license',
         platforms=['unix', 'linux', 'osx'],
         author='Riceball LEE',
