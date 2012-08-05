@@ -121,7 +121,7 @@ def Str2Bool(value):
     #Non-string values are passed to bool.
     """
     #if type(value) == type(''):
-    if value.lower() in ("yes", "y", "true",  "t", ):
+    if value.lower() in ("yes", "y", "true",  "t"):
         return True
     if value.lower() in ("no",  "n", "false", "f"):
         return False
