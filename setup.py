@@ -12,7 +12,7 @@ from iDB.helpers import IDB_VER
 def main():
     setup(
         name='iDB',
-        description='iDB Library',
+        description='iDB Database Engine Library',
         long_description = open('README.md').read(),
         version= IDB_VER,
         url='https://github.com/snowyu/pyidb',
@@ -30,8 +30,9 @@ def main():
                      'Operating System :: POSIX',
                      'Operating System :: Linux',
                      'Operating System :: MacOS :: MacOS X',
-                     'Topic :: Software Development :: Database',
                      'Environment :: Console',
+                     'Topic :: Database',
+                     'Topic :: Database :: Database Engines/Servers',
                      'Topic :: Software Development :: Libraries',
                      'Programming Language :: Python',
                      'Programming Language :: Python :: 2.7',
