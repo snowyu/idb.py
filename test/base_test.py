@@ -7,8 +7,8 @@ import os
 from os import path
 from shutil import rmtree
 
-from idb.utils import RandomString
-from idb.helpers import WriteFileValue, ReadFileValue, GetDBValue, RemoveFileValue, IDB_VALUE_NAME
+from iDB.utils import RandomString
+from iDB.helpers import WriteFileValue, ReadFileValue, GetDBValue, RemoveFileValue, IDB_VALUE_NAME
 
 ROOT_DIR = './mytestdb'
 FIXTURE_DIR = path.join(path.realpath(__file__), 'fixtures')

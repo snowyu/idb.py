@@ -1,13 +1,13 @@
 #!/usr/bin/python
 #coding:utf-8
 
-import idb.helpers
+import iDB.helpers
 import pytest
 import unittest
 import base_test
 
 from os import path
-from idb.utils import RandomString, GetDirCount
+from iDB.utils import RandomString, GetDirCount
 from shutil import rmtree
 from base_test import BaseTest, ROOT_DIR
 

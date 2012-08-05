@@ -2,7 +2,7 @@
 #coding:utf-8
 
 
-import idb
+import iDB
 import pytest
 import unittest
 from base_test import BaseTest
