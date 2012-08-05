@@ -21,7 +21,7 @@ from Item import Item
 from Integer import Integer
 from Hex import Hex
 from String import String
-
+from Boolean import Boolean
 
 
 # If you need to get a class from a module, you can use getattr: getattr(glob, 'glob')
@@ -155,6 +155,8 @@ class Dict(Item, DictMixin):
         #clsname = type(item).__name__
         if isinstance(item, Hex):
             item = Hex(item,  ** opts)
+        elif isinstance(item, bool):
+            item = Boolean(item,  ** opts)
         elif isinstance(item, int): #int and Integer etc all derived from int.
             item = Integer(item,  ** opts)
         elif isinstance(item, str):
