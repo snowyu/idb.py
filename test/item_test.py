@@ -38,10 +38,9 @@ class ItemTest(BaseTest):
         return pairs
 
     def test_load(self):
-        """self.item
-        """
         pairs= self.save_pairs()
         for item in pairs:
             cls = item['cls']
             i = cls.LoadFrom(path=self.path, key=item['key'])
+            assert type(i) == type(item['v'])
             assert i  == item['v']
