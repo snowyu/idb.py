@@ -9,7 +9,7 @@ from os import path
 
 from utils import CreateDir, SetXattrValue, GetXattrValue, IsXattrValueExists
 from helpers import IDB_SPEC_VER, WriteFileValueToBackup, ReadFileValueFromBackup, DeleteDBValue, iDBError
-from helpers import EIDBNODIR, IDB_VALUE_NAME, IDB_KEY_TYPE_NAME
+from helpers import EIDBNOSUCHKEY, EIDBNODIR, IDB_VALUE_NAME, IDB_KEY_TYPE_NAME
 
 class Item(object):
     _ItemClasses = {}
@@ -191,7 +191,7 @@ class Item(object):
     def Save(self,  **kwargs):
         self.SaveTo(self.key,  ** kwargs)
     def Delete(self):
-        delete(self.path, self.key)
+        self.delete(self.path, self.key)
     def Exists(self):
         result = self.exists_by_dir(self.path, self.key)
         if not result and self.backup:
