@@ -88,10 +88,11 @@ def TouchFile(aFileName, aTimeStamp = None):
 def Str2Int(value):
     if value != None:
         base = 10
-        if value[0] == '"' and value[-1] == '"':
-            value = value[1:-1]
-        elif value[0] == "'" and value[-1] == "'":
-            value = value[1:-1]
+        if len(value) >= 2:
+            if value[0] == '"' and value[-1] == '"':
+                value = value[1:-1]
+            elif value[0] == "'" and value[-1] == "'":
+                value = value[1:-1]
         vSign = ''
         if value[0] == '+' or value[0] == '-':
             vSign = value[0]
