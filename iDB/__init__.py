@@ -1,7 +1,11 @@
-import iDB, helpers, String, Integer, Hex
+import utils, helpers
+
+from String import String
+from Integer import Integer
+from Hex import Hex
+from Boolean import Boolean
+from Dict import Dict
 
 __version__ = helpers.IDB_VER
 
-__all__ = ['Integer', 'String', 'Hex']
-
-
+__all__ = ['Integer', 'Hex', 'Boolean', 'String', 'Dict']
