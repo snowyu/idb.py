@@ -80,7 +80,7 @@ class Item(object):
     def set_by_dir(cls, aPath, aKey, aValue):
         # save the Integer to the aKey
         vDir = path.join(aPath, aKey)
-        CreateDir(vDir)
+        #CreateDir(vDir)
         SetXattrValue(vDir, IDB_VALUE_NAME, str(aValue))
         SetXattrValue(vDir, IDB_KEY_TYPE_NAME, cls.__name__)
     @staticmethod
@@ -190,6 +190,8 @@ class Item(object):
         backup = self.backup
         if kwargs.has_key('backup'):
             backup = kwargs['backup']
+        vDir = path.join(self.path, aKey)
+        CreateDir(vDir)
         if xattr:
             self.SaveToDir(aKey)
         else:
