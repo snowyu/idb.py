@@ -19,6 +19,8 @@ class iDBTestCase(BenchmarkTestCase):
     def setUp(self):
         #sys.stderr.write('connecting...\n')
         self.path = './mytestdb'
+        self.backup = False
+        self.xattr  = True
         CreateDir(self.path)
         #self.client.flushdb()
         
@@ -30,20 +32,20 @@ class iDBTestCase(BenchmarkTestCase):
  
     def getValue(self, aKey):
         try:
-            result = String.LoadFrom(path=self.path, key=aKey)
+            result = String.LoadFrom(path=self.path, key=aKey, xattr=self.xattr, backup=self.backup)
         except iDBError:
             result = None
         return result
     
     def addValue(self, aKey, aValue):
         #sys.stderr.write("add value{0}\n" % aKey)
-        a = String(aValue, path=self.path, key=aKey)
+        a = String(aValue, path=self.path, key=aKey, xattr=self.xattr, backup=self.backup)
         a.Save()
         return True
         #return self.client.setnx(aKey, aValue)
     
     def updateValue(self, aKey, aValue):
-        a = String(path=self.path, key=aKey)
+        a = String(path=self.path, key=aKey, xattr=self.xattr, backup=self.backup)
         if a.Exists() == True:
             a.data = aValue
             a.Save()
