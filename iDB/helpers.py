@@ -12,7 +12,7 @@ from shutil import rmtree
 from xattr import xattr
 from urllib import quote, unquote
 
-from utils import Str2Hex, Str2Bool, CreateDir, TouchFile, GetXattrValue, IsXattrValueExists
+from utils import Str2Hex, Str2Bool, CreateDir, TouchFile, GetXattrValue, IsXattrValueExists, SetXattrValue
 
 # Constants
 # the iDB Library version:
@@ -85,8 +85,7 @@ def WriteFileValue(aDir, aValue, aAttriubte=IDB_VALUE_NAME, aBackup = True):
     #vDir = path.dirname(aFile)
     #aString = path.basename(aFile)
     CreateDir(aDir)
-    x = xattr(aDir)
-    x[aAttriubte] = aValue
+    SetXattrValue(aDir, aAttriubte, aValue)
     #TouchFile(aFile)
     if aBackup:
         WriteFileValueToBackup(aDir, aValue, aAttriubte)
