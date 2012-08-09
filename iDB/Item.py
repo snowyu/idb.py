@@ -25,7 +25,7 @@ class Item(object):
     @classmethod
     def get_options(cls, **kwargs):
         result = {}
-        kw_defaults = { 'path': '', 'backup': True, 'key': '.' }
+        kw_defaults = { 'path': '', 'xattr': True, 'backup': True, 'key': '.' }
         for key, value in kw_defaults.iteritems():
             if kwargs.has_key(key):
                 result[key] = kwargs[key]
@@ -33,6 +33,8 @@ class Item(object):
                 result[key] = value
         if result['key'] == '':
             result['key'] == '.'
+        result['xattr'] = bool(result['xattr'])
+        result['backup'] = bool(result['backup'])
         return result
     @classmethod
     def new_data(cls, aData):
@@ -111,9 +113,15 @@ class Item(object):
     @backup.setter
     def backup(self, value):
         self._backup = bool(value)
+    @property
+    def xattr(self):
+        return self._xattr
+    @xattr.setter
+    def xattr(self, value):
+        self._xattr = bool(value)
     # Get the current options to pass through
     def GetOptions(self):
-        return {'backup': self._backup}
+        return {'backup': self._backup, 'xattr': self._xattr}
     def ApplyOptions(self,  ** options):
         for key, value in options.iteritems():
             setattr(self, '_' + key, value)
@@ -159,7 +167,11 @@ class Item(object):
         options = cls.get_options(** kwargs)
         if options['path']  ==  '':
             raise iDBError(EIDBNODIR, 'Please specify the database directory first!')
-        data = cls.get_by_dir(options['path'], options['key'])
+        data = None
+        if options['xattr']:
+            data = cls.get_by_dir(options['path'], options['key'])
+        else:
+            options['backup'] = True
         if data == None and options['backup']:
             data = cls.get_by_backup(options['path'], options['key'])
         if data  == None:
@@ -172,17 +184,30 @@ class Item(object):
         return result
 
     def SaveTo(self, aKey,  **kwargs):
-        self.SaveToDir(aKey)
+        xattr = self.xattr
+        if kwargs.has_key('xattr'):
+            xattr = kwargs['xattr']
         backup = self.backup
         if kwargs.has_key('backup'):
             backup = kwargs['backup']
+        if xattr:
+            self.SaveToDir(aKey)
+        else:
+            backup = True
         if backup:
             self.SaveToBackup(aKey)
     def Load(self,  **kwargs):
         backup = self.backup
         if kwargs.has_key('backup'):
             backup = kwargs['backup']
-        result = self.LoadFromDir(self.key)
+        xattr = self.xattr
+        if kwargs.has_key('xattr'):
+            xattr = kwargs['xattr']
+        else:
+            backup = True
+        result = None
+        if xattr:
+            result = self.LoadFromDir(self.key)
         if not result and backup:
             result = self.LoadFromBackup(self.key)
         if result  == None:
@@ -193,7 +218,9 @@ class Item(object):
     def Delete(self):
         self.delete(self.path, self.key)
     def Exists(self):
-        result = self.exists_by_dir(self.path, self.key)
+        result = None
+        if self.xattr:
+            result = self.exists_by_dir(self.path, self.key)
         if not result and self.backup:
             result = self.exists_by_backup(self.path, self.key)
         return result
