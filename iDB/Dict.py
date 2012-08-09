@@ -8,7 +8,6 @@
 
 import errno
 from os import path
-from xattr import xattr
 from glob import glob
 from UserDict import DictMixin
 
