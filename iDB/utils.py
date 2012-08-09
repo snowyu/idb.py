@@ -11,11 +11,13 @@ from xattr import xattr
 def RandomString(size=6, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for x in range(size))
 
+XATTR_PREFIX = 'user.'
+
 def GetXattrKeys(aFile):
     result = None
     x = xattr(aFile)
     try:
-        result = x.list()
+        result = [item[len(XATTR_PREFIX):] for item in a if item[0:len(XATTR_PREFIX)]==XATTR_PREFIX]
     except (KeyError, IOError) as e:
         if type(e) == IOError:
             if e.errno  != errno.ENOENT: # No Such File
@@ -24,6 +26,7 @@ def GetXattrKeys(aFile):
 
 def GetXattrValue(aFile, aKey):
     result = None
+    aKey = XATTR_PREFIX + aKey
     x = xattr(aFile)
     try:
         result = x[aKey]
@@ -35,6 +38,7 @@ def GetXattrValue(aFile, aKey):
 
 def SetXattrValue(aFile, aKey, aValue):
     result = None
+    aKey = XATTR_PREFIX + aKey
     x = xattr(aFile)
     try:
         x[aKey] = aValue
@@ -47,6 +51,7 @@ def SetXattrValue(aFile, aKey, aValue):
 
 def IsXattrValueExists(aFile, aKey):
     result = False
+    aKey = XATTR_PREFIX + aKey
     x = xattr(aFile)
     try:
         result = x.has_key(aKey)
