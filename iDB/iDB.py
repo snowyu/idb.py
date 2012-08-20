@@ -6,7 +6,7 @@ import sys, errno
 import glob
 from os import path
 
-from utils import CreateDir
+from utils import ForceDirectories
 from helpers import IDB_SPEC_VER, GetDBValue, CreateDBValue, UpdateDBValue, PutDBValue, DeleteDBValue, iDBError
 from helpers import EIDBNODIR
 
@@ -46,7 +46,7 @@ class iDB(object):
         """init a database:
         """
         self.__init_parms__(connection)
-        CreateDir(self.path)
+        ForceDirectories(self.path)
         self.version = IDB_SPEC_VER
         self.Put('.db/version', IDB_SPEC_VER, 'Float')
     def Get(self, key):

@@ -12,7 +12,7 @@ from shutil import rmtree
 from xattr import xattr
 from urllib import quote, unquote
 
-from utils import Str2Hex, Str2Bool, CreateDir, TouchFile, GetXattrValue, IsXattrValueExists, SetXattrValue
+from utils import Str2Hex, Str2Bool, ForceDirectories, TouchFile, GetXattr, IsXattrExists, SetXattr
 
 # Constants
 # the iDB Library version:
@@ -38,7 +38,7 @@ class iDBError(Exception):
         return repr(self.message)
 
 def IsFileValueExists(aDir, aAttriubte=IDB_VALUE_NAME, aDBVersion=IDB_SPEC_VER):
-    result = IsXattrValueExists(aDir, aAttriubte)
+    result = IsXattrExists(aDir, aAttriubte)
     if not result:
         aFile = path.join(aDir, aAttriubte)
         result = path.isfile(aFile)
@@ -59,7 +59,7 @@ def ReadFileValueFromBackup(aDir, aAttriubte=IDB_VALUE_NAME):
 def ReadFileValue(aDir, aAttriubte=IDB_VALUE_NAME, aDBVersion=IDB_SPEC_VER):
     """
     """
-    result = GetXattrValue(aDir, aAttriubte)
+    result = GetXattr(aDir, aAttriubte)
     if result == None:
         # It's the backup of the value.
         result = ReadFileValueFromBackup(aDir, aAttriubte)
@@ -84,8 +84,8 @@ def WriteFileValue(aDir, aValue, aAttriubte=IDB_VALUE_NAME, aBackup = True):
     #aFile = path.join(aDir, '=' + aString)
     #vDir = path.dirname(aFile)
     #aString = path.basename(aFile)
-    CreateDir(aDir)
-    SetXattrValue(aDir, aAttriubte, aValue)
+    ForceDirectories(aDir)
+    SetXattr(aDir, aAttriubte, aValue)
     #TouchFile(aFile)
     if aBackup:
         WriteFileValueToBackup(aDir, aValue, aAttriubte)

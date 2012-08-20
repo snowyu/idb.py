@@ -7,7 +7,7 @@
 import urllib
 from os import path
 
-from utils import CreateDir, SetXattrValue, GetXattrValue, IsXattrValueExists
+from utils import ForceDirectories, SetXattr, GetXattr, IsXattrExists
 from helpers import IDB_SPEC_VER, WriteFileValueToBackup, ReadFileValueFromBackup, DeleteDBValue, iDBError
 from helpers import EIDBNOSUCHKEY, EIDBNODIR, IDB_VALUE_NAME, IDB_KEY_TYPE_NAME
 
@@ -62,7 +62,7 @@ class Item(object):
     @staticmethod
     def exists_by_dir(aPath, aKey):
         vDir  = path.join(aPath, aKey)
-        return IsXattrValueExists(vDir, IDB_VALUE_NAME)
+        return IsXattrExists(vDir, IDB_VALUE_NAME)
     def exists_by_backup(aPath, aKey):
         vFile = path.join(aPath, aKey, IDB_VALUE_NAME)
         return path.isfile(vFile)
@@ -74,15 +74,15 @@ class Item(object):
     def get_by_dir(aPath, aKey, aAttribute=IDB_VALUE_NAME):
         # load the Integer from the aKey
         vDir = path.join(aPath, aKey)
-        result = GetXattrValue(vDir, aAttribute)
+        result = GetXattr(vDir, aAttribute)
         return result
     @classmethod
     def set_by_dir(cls, aPath, aKey, aValue):
         # save the Integer to the aKey
         vDir = path.join(aPath, aKey)
-        #CreateDir(vDir)
-        SetXattrValue(vDir, IDB_VALUE_NAME, str(aValue))
-        SetXattrValue(vDir, IDB_KEY_TYPE_NAME, cls.__name__)
+        #ForceDirectories(vDir)
+        SetXattr(vDir, IDB_VALUE_NAME, str(aValue))
+        SetXattr(vDir, IDB_KEY_TYPE_NAME, cls.__name__)
     @staticmethod
     def get_by_backup(aPath, aKey, aAttribute=IDB_VALUE_NAME):
         vDir = path.join(aPath, aKey)
@@ -191,7 +191,7 @@ class Item(object):
         if kwargs.has_key('backup'):
             backup = kwargs['backup']
         vDir = path.join(self.path, aKey)
-        CreateDir(vDir)
+        ForceDirectories(vDir)
         if xattr:
             self.SaveToDir(aKey)
         else:

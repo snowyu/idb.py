@@ -13,7 +13,7 @@ def RandomString(size=6, chars=string.ascii_uppercase + string.digits):
 
 XATTR_PREFIX = 'user.'
 
-def GetXattrKeys(aFile):
+def ListXattr(aFile):
     result = None
     x = xattr(aFile)
     try:
@@ -24,7 +24,7 @@ def GetXattrKeys(aFile):
                 raise
     return result
 
-def GetXattrValue(aFile, aKey):
+def GetXattr(aFile, aKey):
     result = None
     aKey = XATTR_PREFIX + aKey
     x = xattr(aFile)
@@ -36,7 +36,7 @@ def GetXattrValue(aFile, aKey):
                 raise
     return result
 
-def SetXattrValue(aFile, aKey, aValue):
+def SetXattr(aFile, aKey, aValue):
     result = None
     aKey = XATTR_PREFIX + aKey
     x = xattr(aFile)
@@ -49,7 +49,7 @@ def SetXattrValue(aFile, aKey, aValue):
                 raise
     return result
 
-def IsXattrValueExists(aFile, aKey):
+def IsXattrExists(aFile, aKey):
     result = False
     aKey = XATTR_PREFIX + aKey
     x = xattr(aFile)
@@ -70,7 +70,7 @@ def GetFileCount(aDir):
     return sum(1 for item in os.listdir(aDir) if path.isfile(path.join(aDir, item)))
 
 # Create all missed directoy 
-def CreateDir(aDir):
+def ForceDirectories(aDir):
     try:
         os.makedirs(aDir)
     except OSError as exc: # Python >2.5

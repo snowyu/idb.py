@@ -12,7 +12,7 @@ from glob import glob
 from UserDict import DictMixin
 
 
-from utils import CreateDir, SetXattrValue, GetXattrValue, IsXattrValueExists, GetXattrKeys
+from utils import ForceDirectories, SetXattr, GetXattr, IsXattrExists, ListXattr
 from helpers import IDB_SPEC_VER, WriteFileValueToBackup, ReadFileValueFromBackup, DeleteDBValue, iDBError
 from helpers import EIDBNODIR, IDB_VALUE_NAME, IDB_KEY_TYPE_NAME
 
@@ -77,7 +77,7 @@ class Dict(Item, DictMixin):
         # load the Integer from the aKey
         vDir = path.join(aPath, aKey)
         result = None
-        vData = GetXattrValue(vDir, IDB_VALUE_NAME)
+        vData = GetXattr(vDir, IDB_VALUE_NAME)
         if vData != None:
             result = {}
             vData = vData.strip().splitlines()
@@ -101,7 +101,7 @@ class Dict(Item, DictMixin):
     def set_by_dir(cls, aPath, aKey, aValue):
         # save the Integer to the aKey
         vDir = path.join(aPath, aKey)
-        CreateDir(vDir)
+        ForceDirectories(vDir)
         keys = ''
         opts = aValue.GetOptions()
         for key in aValue.data:
@@ -109,8 +109,8 @@ class Dict(Item, DictMixin):
             if isinstance(v, Item):
                 v.Save( ** opts)
                 keys += key + '\n'
-        SetXattrValue(vDir, IDB_VALUE_NAME, keys)
-        SetXattrValue(vDir, IDB_KEY_TYPE_NAME, cls.__name__)
+        SetXattr(vDir, IDB_VALUE_NAME, keys)
+        SetXattr(vDir, IDB_KEY_TYPE_NAME, cls.__name__)
 
     @classmethod
     def set_by_backup(cls, aPath, aKey, aValue):
