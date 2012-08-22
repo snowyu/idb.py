@@ -8,7 +8,7 @@ import urllib
 from os import path
 
 from utils import ForceDirectories, SetXattr, GetXattr, IsXattrExists
-from helpers import IDB_SPEC_VER, WriteFileValueToBackup, ReadFileValueFromBackup, DeleteDBValue, iDBError
+from helpers import IDB_SPEC_VER, WriteValueFromFile, ReadValueFromFile, DeleteDBValue, iDBError
 from helpers import EIDBNOSUCHKEY, EIDBNODIR, IDB_VALUE_NAME, IDB_KEY_TYPE_NAME
 
 class Item(object):
@@ -25,7 +25,7 @@ class Item(object):
     @classmethod
     def get_options(cls, **kwargs):
         result = {}
-        kw_defaults = { 'path': '', 'xattr': True, 'backup': True, 'key': '.' }
+        kw_defaults = { 'path': '', 'storeInXattr': True, 'storeInFile': True, 'key': '.' }
         for key, value in kw_defaults.iteritems():
             if kwargs.has_key(key):
                 result[key] = kwargs[key]
@@ -33,8 +33,8 @@ class Item(object):
                 result[key] = value
         if result['key'] == '':
             result['key'] == '.'
-        result['xattr'] = bool(result['xattr'])
-        result['backup'] = bool(result['backup'])
+        result['storeInXattr'] = bool(result['storeInXattr'])
+        result['storeInFile'] = bool(result['storeInFile'])
         return result
     @classmethod
     def new_data(cls, aData):
@@ -56,14 +56,13 @@ class Item(object):
         #    setattr(result, '_' + key, value)
         if result.path  ==  '':
             raise iDBError(EIDBNODIR, 'Please specify the database directory first!')
-        result.backup = result._backup
         result.key = result._key
         return result
     @staticmethod
-    def exists_by_dir(aPath, aKey):
+    def exists_by_xattr(aPath, aKey):
         vDir  = path.join(aPath, aKey)
         return IsXattrExists(vDir, IDB_VALUE_NAME)
-    def exists_by_backup(aPath, aKey):
+    def exists_by_file(aPath, aKey):
         vFile = path.join(aPath, aKey, IDB_VALUE_NAME)
         return path.isfile(vFile)
     @staticmethod
@@ -71,30 +70,30 @@ class Item(object):
         vDir  = path.join(aPath, aKey)
         DeleteDBValue(vDir)
     @staticmethod
-    def get_by_dir(aPath, aKey, aAttribute=IDB_VALUE_NAME):
+    def get_by_xattr(aPath, aKey, aAttribute=IDB_VALUE_NAME):
         # load the Integer from the aKey
         vDir = path.join(aPath, aKey)
         result = GetXattr(vDir, aAttribute)
         return result
     @classmethod
-    def set_by_dir(cls, aPath, aKey, aValue):
+    def set_by_xattr(cls, aPath, aKey, aValue):
         # save the Integer to the aKey
         vDir = path.join(aPath, aKey)
         #ForceDirectories(vDir)
         SetXattr(vDir, IDB_VALUE_NAME, str(aValue))
         SetXattr(vDir, IDB_KEY_TYPE_NAME, cls.__name__)
     @staticmethod
-    def get_by_backup(aPath, aKey, aAttribute=IDB_VALUE_NAME):
+    def get_by_file(aPath, aKey, aAttribute=IDB_VALUE_NAME):
         vDir = path.join(aPath, aKey)
-        result = ReadFileValueFromBackup(vDir, aAttribute)
+        result = ReadValueFromFile(vDir, aAttribute)
         if result != None:
             result = result[0]
         return result
     @classmethod
-    def set_by_backup(cls, aPath, aKey, aValue):
+    def set_by_file(cls, aPath, aKey, aValue):
         vDir = path.join(aPath, aKey)
-        WriteFileValueToBackup(vDir, str(aValue), IDB_VALUE_NAME)
-        WriteFileValueToBackup(vDir, cls.__name__, IDB_KEY_TYPE_NAME)
+        WriteValueFromFile(vDir, str(aValue), IDB_VALUE_NAME)
+        WriteValueFromFile(vDir, cls.__name__, IDB_KEY_TYPE_NAME)
     @property
     def key(self):
         return urllib.unquote(self._key)
@@ -108,20 +107,20 @@ class Item(object):
     def path(self, value):
         self._path = value
     @property
-    def backup(self):
-        return self._backup
-    @backup.setter
-    def backup(self, value):
-        self._backup = bool(value)
+    def storeInFile(self):
+        return self._storeInFile
+    @storeInFile.setter
+    def storeInFile(self, value):
+        self._storeInFile = bool(value)
     @property
-    def xattr(self):
-        return self._xattr
-    @xattr.setter
-    def xattr(self, value):
-        self._xattr = bool(value)
+    def storeInXattr(self):
+        return self._storeInXattr
+    @storeInXattr.setter
+    def storeInXattr(self, value):
+        self._storeInXattr = bool(value)
     # Get the current options to pass through
     def GetOptions(self):
-        return {'backup': self._backup, 'xattr': self._xattr}
+        return {'storeInFile': self._storeInXattr, 'storeInXattr': self._storeInXattr}
     def ApplyOptions(self,  ** options):
         for key, value in options.iteritems():
             setattr(self, '_' + key, value)
@@ -131,49 +130,49 @@ class Item(object):
         options = cls.get_options(** kwargs)
         if options['path']  ==  '':
             raise iDBError(EIDBNODIR, 'Please specify the database directory first!')
-        data = Item.get_by_dir(options['path'], options['key'], IDB_KEY_TYPE_NAME)
-        if data == None and options['backup']:
-            data = Item.get_by_backup(options['path'], options['key'], IDB_KEY_TYPE_NAME)
+        data = Item.get_by_xattr(options['path'], options['key'], IDB_KEY_TYPE_NAME)
+        if data == None and options['storeInFile']:
+            data = Item.get_by_file(options['path'], options['key'], IDB_KEY_TYPE_NAME)
         if data  == None:
             raise iDBError(EIDBNOSUCHKEY, "Error: No Such Key(%s) Exists." % path.join(options['path'], options['key']))
 
         return data
 
-    def LoadFromDir(self, aKey=None):
+    def LoadFromXattr(self, aKey=None):
         # load the item from the aKey
         if aKey == None:
             aKey = self.key
-        result = get_by_dir(self.path, aKey)
+        result = get_by_xattr(self.path, aKey)
         if result  == None:
             raise iDBError(EIDBNOSUCHKEY, "Error: No Such Key(%s) Exists." % path.join(self.path, self.key))
         self.data = self.__data__(result)
-    def SaveToDir(self, aKey=None):
+    def SaveToXattr(self, aKey=None):
         if aKey == None:
             aKey = self.key
-        self.set_by_dir(self.path, aKey, self)
-    def LoadFromBackup(self, aKey=None):
+        self.set_by_xattr(self.path, aKey, self)
+    def LoadFromFile(self, aKey=None):
         if aKey == None:
             aKey = self.key
-        result = get_by_backup(self.path, aKey)
+        result = get_by_file(self.path, aKey)
         if result  == None:
             raise iDBError(EIDBNOSUCHKEY, "Error: No Such Key(%s) Exists." % path.join(self.path, self.key))
         self.data = self.__data__(result)
-    def SaveToBackup(self, aKey=None):
+    def SaveToFile(self, aKey=None):
         if aKey == None:
             aKey = self.key
-        self.set_by_backup(self.path, aKey, self)
+        self.set_by_file(self.path, aKey, self)
     @classmethod
     def LoadFrom(cls, **kwargs):
         options = cls.get_options(** kwargs)
         if options['path']  ==  '':
             raise iDBError(EIDBNODIR, 'Please specify the database directory first!')
         data = None
-        if options['xattr']:
-            data = cls.get_by_dir(options['path'], options['key'])
+        if options['storeInXattr']:
+            data = cls.get_by_xattr(options['path'], options['key'])
         else:
-            options['backup'] = True
-        if data == None and options['backup']:
-            data = cls.get_by_backup(options['path'], options['key'])
+            options['storeInFile'] = True
+        if data == None and options['storeInFile']:
+            data = cls.get_by_file(options['path'], options['key'])
         if data  == None:
             raise iDBError(EIDBNOSUCHKEY, "Error: No Such Key(%s) Exists." % path.join(options['path'], options['key']))
 
@@ -184,34 +183,34 @@ class Item(object):
         return result
 
     def SaveTo(self, aKey,  **kwargs):
-        xattr = self.xattr
-        if kwargs.has_key('xattr'):
-            xattr = kwargs['xattr']
-        backup = self.backup
-        if kwargs.has_key('backup'):
-            backup = kwargs['backup']
+        xattr = self.storeInXattr
+        if kwargs.has_key('storeInXattr'):
+            xattr = kwargs['storeInXattr']
+        storeInFile = self.storeInFile
+        if kwargs.has_key('storeInFile'):
+            storeInFile = kwargs['storeInFile']
         vDir = path.join(self.path, aKey)
         ForceDirectories(vDir)
         if xattr:
-            self.SaveToDir(aKey)
+            self.SaveToXattr(aKey)
         else:
-            backup = True
-        if backup:
-            self.SaveToBackup(aKey)
+            storeInFile = True
+        if storeInFile:
+            self.SaveToFile(aKey)
     def Load(self,  **kwargs):
-        backup = self.backup
-        if kwargs.has_key('backup'):
-            backup = kwargs['backup']
-        xattr = self.xattr
-        if kwargs.has_key('xattr'):
-            xattr = kwargs['xattr']
+        storeInFile = self.storeInFile
+        if kwargs.has_key('storeInFile'):
+            backup = kwargs['storeInFile']
+        xattr = self.storeInXattr
+        if kwargs.has_key('storeInXattr'):
+            xattr = kwargs['storeInXattr']
         else:
-            backup = True
+            storeInFile = True
         result = None
         if xattr:
-            result = self.LoadFromDir(self.key)
-        if not result and backup:
-            result = self.LoadFromBackup(self.key)
+            result = self.LoadFromXattr(self.key)
+        if not result and storeInFile:
+            result = self.LoadFromFile(self.key)
         if result  == None:
             raise iDBError(EIDBNOSUCHKEY, "Error: No Such Key(%s) Exists." % path.join(result.path, result.key))
         return result
@@ -221,10 +220,10 @@ class Item(object):
         self.delete(self.path, self.key)
     def Exists(self):
         result = None
-        if self.xattr:
-            result = self.exists_by_dir(self.path, self.key)
-        if not result and self.backup:
-            result = self.exists_by_backup(self.path, self.key)
+        if self.storeInXattr:
+            result = self.exists_by_xattr(self.path, self.key)
+        if not result and self.storeInFile:
+            result = self.exists_by_file(self.path, self.key)
         return result
     def __cast(self, other):
         if isinstance(other, Item): return other.data

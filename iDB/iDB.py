@@ -19,36 +19,43 @@ class iDB(object):
     def _get(self, aKey, aValueType):
         """
         """
-    def __init_parms__(self,  **connection):
-        kw_defaults = {path: '', cache: True}
+    def __init_parms__(self,  **kwargs):
+        kw_defaults = {path: '', storeInFile: True,  storeInXattr: True}
         for key, value in kw_defaults.iteritems():
-            if connection.has_key(key):
-                val = connection[key]
+            if kwargs.has_key(key):
+                val = kwargs[key]
             else:
                 val = value
-            setattr(self, key, val)
-        self.cache = bool(self.cache)
+            setattr(self, '_' + key, val)
+        self._backup  = bool(self._backup)
+        self._version = IDB_SPEC_VER
+        self.opened  = False
+        #if self.path  ==  '':
+        #    raise iDBError(EIDBNODIR, 'Please specify the database directory first!')
+
+    def __init__(self,  **kwargs):
+        """Open an existed database:
+        iDB(path='/mydb', backup=True)
+        """
+        self.__init_parms__(** kwargs)
+
+
+        #self.version = self.Get('.db/version')
+        #if self.version  == None:
+        #    self.version = IDB_SPEC_VER
+
+    # Open database
+    def Open(self, aSkipDBConfig = False):
         if self.path  ==  '':
             raise iDBError(EIDBNODIR, 'Please specify the database directory first!')
-
-    def __init__(self, connection):
-        """Open an existed database:
-        iDB({'path':'/mydb', 'cache': True})
-        """
-        self.__init_parms__(connection)
-
-
-        self.version = self.Get('.db/version')
-        if self.version  == None:
-            self.version = IDB_SPEC_VER
-
-    def init(self, connection):
-        """init a database:
-        """
-        self.__init_parms__(connection)
-        ForceDirectories(self.path)
-        self.version = IDB_SPEC_VER
-        self.Put('.db/version', IDB_SPEC_VER, 'Float')
+        if path.isdir(self.path):
+            self.LoadDBMetaInfo(aSkipDBConfig)
+        else:
+            ForceDirectories(self.path)
+            self.SaveDBMetaInfo()
+        self.opened = True
+    def SaveDBMetaInfo(self):
+        self.Put('.db/version', self.version, 'Float')
     def Get(self, key):
         """return the value of the key
         """
@@ -78,4 +85,18 @@ class iDB(object):
         """
         vDir = path.join(self.path, key)
         DeleteDBValue(vDir)
-    
+    @property
+    def version(self):
+        return self._version
+    @property
+    def path(self):
+        return self._path
+    @path.setter
+    def path(self, value):
+        self._path = value
+    @property
+    def backup(self):
+        return self._backup
+    @backup.setter
+    def backup(self, value):
+        self._backup = bool(value)    

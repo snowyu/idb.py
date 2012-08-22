@@ -13,7 +13,7 @@ from UserDict import DictMixin
 
 
 from utils import ForceDirectories, SetXattr, GetXattr, IsXattrExists, ListXattr
-from helpers import IDB_SPEC_VER, WriteFileValueToBackup, ReadFileValueFromBackup, DeleteDBValue, iDBError
+from helpers import IDB_SPEC_VER, WriteValueFromFile, ReadValueFromFile, DeleteDBValue, iDBError
 from helpers import EIDBNODIR, IDB_VALUE_NAME, IDB_KEY_TYPE_NAME
 
 from Item import Item
@@ -73,7 +73,7 @@ class Dict(Item, DictMixin):
         return result
 
     @staticmethod
-    def get_by_dir(aPath, aKey):
+    def get_by_xattr(aPath, aKey):
         # load the Integer from the aKey
         vDir = path.join(aPath, aKey)
         result = None
@@ -86,19 +86,19 @@ class Dict(Item, DictMixin):
                      result[key] = Loading
         return result
     @staticmethod
-    def get_by_backup(aPath, aKey):
+    def get_by_file(aPath, aKey):
         result = None
         vDir = path.join(aPath, aKey)
-        vData = ReadFileValueFromBackup(vDir, IDB_VALUE_NAME)
+        vData = ReadValueFromFile(vDir, IDB_VALUE_NAME)
         if len(vData):
-            vData = vData.strip()
+            #vData = vData.strip()
             result = {}
             for key in vData:
                 if len(key) and key[0] != '.':
                      result[key] = Loading
         return result
     @classmethod
-    def set_by_dir(cls, aPath, aKey, aValue):
+    def set_by_xattr(cls, aPath, aKey, aValue):
         # save the Integer to the aKey
         vDir = path.join(aPath, aKey)
         ForceDirectories(vDir)
@@ -109,11 +109,12 @@ class Dict(Item, DictMixin):
             if isinstance(v, Item):
                 v.Save( ** opts)
                 keys += key + '\n'
+        #super(Dict, cls).set_by_xattr(vDir, keys)
         SetXattr(vDir, IDB_VALUE_NAME, keys)
         SetXattr(vDir, IDB_KEY_TYPE_NAME, cls.__name__)
 
     @classmethod
-    def set_by_backup(cls, aPath, aKey, aValue):
+    def set_by_file(cls, aPath, aKey, aValue):
         vDir = path.join(aPath, aKey)
         keys = ''
         opts = aValue.GetOptions()
@@ -122,8 +123,9 @@ class Dict(Item, DictMixin):
             if isinstance(v, Item):
                 v.Save( ** opts)
                 keys += key + '\n'
-        WriteFileValueToBackup(vDir, keys, IDB_VALUE_NAME)
-        WriteFileValueToBackup(vDir, cls.__name__, IDB_KEY_TYPE_NAME)
+        #super(Dict, cls).set_by_file(vDir, keys)
+        WriteValueFromFile(vDir, keys, IDB_VALUE_NAME)
+        WriteValueFromFile(vDir, cls.__name__, IDB_KEY_TYPE_NAME)
 
 
     # dict override:

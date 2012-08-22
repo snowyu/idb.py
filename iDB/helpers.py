@@ -47,7 +47,7 @@ def IsFileValueExists(aDir, aAttriubte=IDB_VALUE_NAME, aDBVersion=IDB_SPEC_VER):
         result = len(glob.glob(aFile)) > 0 # Search dir by pattern
     return result
 
-def ReadFileValueFromBackup(aDir, aAttriubte=IDB_VALUE_NAME):
+def ReadValueFromFile(aDir, aAttriubte=IDB_VALUE_NAME):
     result = None
     vFile = path.join(aDir, aAttriubte)
     try:
@@ -62,7 +62,7 @@ def ReadFileValue(aDir, aAttriubte=IDB_VALUE_NAME, aDBVersion=IDB_SPEC_VER):
     result = GetXattr(aDir, aAttriubte)
     if result == None:
         # It's the backup of the value.
-        result = ReadFileValueFromBackup(aDir, aAttriubte)
+        result = ReadValueFromFile(aDir, aAttriubte)
     else:
         result = [result]
     if result == None and aDBVersion <= 0.1 and aAttriubte == IDB_VALUE_NAME: # just keep backcompatible
@@ -71,7 +71,7 @@ def ReadFileValue(aDir, aAttriubte=IDB_VALUE_NAME, aDBVersion=IDB_SPEC_VER):
         result = [value.replace(path.join(aDir, '='),'') for value in result] #remove the prefix "="
     return result
 
-def WriteFileValueToBackup(aDir, aValue, aAttriubte=IDB_VALUE_NAME):
+def WriteValueFromFile(aDir, aValue, aAttriubte=IDB_VALUE_NAME):
     vFile = path.join(aDir, aAttriubte)
     with open(vFile, 'w') as f:
         f.write(aValue)
@@ -88,7 +88,7 @@ def WriteFileValue(aDir, aValue, aAttriubte=IDB_VALUE_NAME, aBackup = True):
     SetXattr(aDir, aAttriubte, aValue)
     #TouchFile(aFile)
     if aBackup:
-        WriteFileValueToBackup(aDir, aValue, aAttriubte)
+        WriteValueFromFile(aDir, aValue, aAttriubte)
 
 def RemoveFileValue(aDir):
     rmtree(aDir)
