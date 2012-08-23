@@ -1,7 +1,9 @@
-# the abstract Item Class for iDB KeyValue Storage:
+# the Item Class for iDB KeyValue Storage:
 #
+# Register your new Item Type by:
+#    Item.Register(Dict)
 #
-# myItem = Item.LoadFrom(path = '/dd/dff', key = 'myKey', backup=False)
+# myItem = Item.LoadItem(path = '/dd/dff', key = 'myKey')
 #
 #
 import urllib
@@ -11,6 +13,14 @@ from utils import ForceDirectories, SetXattr, GetXattr, IsXattrExists
 from helpers import IDB_SPEC_VER, WriteValueFromFile, ReadValueFromFile, DeleteDBValue, iDBError
 from helpers import EIDBNOSUCHKEY, EIDBNODIR, IDB_VALUE_NAME, IDB_KEY_TYPE_NAME
 
+class Loading():
+    def __init__(self,  **kwargs):
+        kw_defaults = {'path': '', 'key': ''}
+        for key, value in kw_defaults.iteritems():
+            if kwargs.has_key(key):
+                value = kwargs[key]
+            setattr(self, key, value)
+
 class Item(object):
     _ItemClasses = {}
     @staticmethod
@@ -19,11 +29,11 @@ class Item(object):
     @classmethod
     def LoadItem(cls, ** kwargs):
         ItemClasses = Item._ItemClasses
-        vType = cls.GetItemType( ** kwargs )
-        vClass= ItemClasses[vType]
-        return vClass.LoadFrom( ** kwargs )
+        vType = cls.GetType( ** kwargs )
+        vTypeClass= ItemClasses[vType]
+        return vTypeClass.LoadFrom(** kwargs)
     @classmethod
-    def get_options(cls, **kwargs):
+    def parse_options(cls, **kwargs):
         result = {}
         kw_defaults = { 'path': '', 'storeInXattr': True, 'storeInFile': True, 'key': '.' }
         for key, value in kw_defaults.iteritems():
@@ -50,7 +60,7 @@ class Item(object):
         result = aNewFunc(aData)
         # the path is the database path
         # the key is the list's key
-        options = cls.get_options(** kwargs)
+        options = cls.parse_options(** kwargs)
         result.ApplyOptions( ** options)
         #for key, value in options.iteritems():
         #    setattr(result, '_' + key, value)
@@ -70,7 +80,7 @@ class Item(object):
         vDir  = path.join(aPath, aKey)
         DeleteDBValue(vDir)
     @staticmethod
-    def get_by_xattr(aPath, aKey, aAttribute=IDB_VALUE_NAME):
+    def get_by_xattr(aPath, aKey, aAttribute=IDB_VALUE_NAME, ** kwargs):
         # load the Integer from the aKey
         vDir = path.join(aPath, aKey)
         result = GetXattr(vDir, aAttribute)
@@ -83,7 +93,7 @@ class Item(object):
         SetXattr(vDir, IDB_VALUE_NAME, str(aValue))
         SetXattr(vDir, IDB_KEY_TYPE_NAME, cls.__name__)
     @staticmethod
-    def get_by_file(aPath, aKey, aAttribute=IDB_VALUE_NAME):
+    def get_by_file(aPath, aKey, aAttribute=IDB_VALUE_NAME, ** kwargs):
         vDir = path.join(aPath, aKey)
         result = ReadValueFromFile(vDir, aAttribute)
         if result != None:
@@ -126,8 +136,8 @@ class Item(object):
             setattr(self, '_' + key, value)
 
     @classmethod
-    def GetItemType(cls,  ** kwargs):
-        options = cls.get_options(** kwargs)
+    def GetType(cls,  ** kwargs):
+        options = cls.parse_options(** kwargs)
         if options['path']  ==  '':
             raise iDBError(EIDBNODIR, 'Please specify the database directory first!')
         data = Item.get_by_xattr(options['path'], options['key'], IDB_KEY_TYPE_NAME)
@@ -163,22 +173,25 @@ class Item(object):
         self.set_by_file(self.path, aKey, self)
     @classmethod
     def LoadFrom(cls, **kwargs):
-        options = cls.get_options(** kwargs)
+        options = cls.parse_options(** kwargs)
         if options['path']  ==  '':
             raise iDBError(EIDBNODIR, 'Please specify the database directory first!')
-        data = None
+        vData = None
+        #vType = None #see LoadItem
         if options['storeInXattr']:
-            data = cls.get_by_xattr(options['path'], options['key'])
+            vData = cls.get_by_xattr(options['path'], options['key'],  ** options)
+            #vType = cls.get_by_xattr(options['path'], options['key'], IDB_KEY_TYPE_NAME)
         else:
             options['storeInFile'] = True
-        if data == None and options['storeInFile']:
-            data = cls.get_by_file(options['path'], options['key'])
-        if data  == None:
+        if vData == None and options['storeInFile']:
+            vData = cls.get_by_file(options['path'], options['key'],  ** options)
+            #vType = cls.get_by_file(options['path'], options['key'], IDB_KEY_TYPE_NAME)
+        if vData  == None:
             raise iDBError(EIDBNOSUCHKEY, "Error: No Such Key(%s) Exists." % path.join(options['path'], options['key']))
 
         # create a new instance
-        result  = cls(cls.__data__(data),  ** kwargs)
-        #result.data = data
+        result  = cls(cls.__data__(vData),  ** kwargs)
+        #result.data = vData
 
         return result
 

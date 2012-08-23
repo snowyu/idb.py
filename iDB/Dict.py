@@ -16,7 +16,7 @@ from utils import ForceDirectories, SetXattr, GetXattr, IsXattrExists, ListXattr
 from helpers import IDB_SPEC_VER, WriteValueFromFile, ReadValueFromFile, DeleteDBValue, iDBError
 from helpers import EIDBNODIR, IDB_VALUE_NAME, IDB_KEY_TYPE_NAME
 
-from Item import Item
+from Item import Item, Loading
 from Integer import Integer
 from Hex import Hex
 from String import String
@@ -27,8 +27,6 @@ from Boolean import Boolean
 # the class is in your scope:
 #get_class = lambda x: globals()[x]
 
-class Loading():
-    pass
 class Dict(Item, DictMixin):
     @property
     def loadOnDemand(self):
@@ -37,8 +35,8 @@ class Dict(Item, DictMixin):
     def loadOnDemand(self, value):
         self._loadOnDemand = bool(value)
     @classmethod
-    def get_options(cls, **kwargs):
-        result = Item.get_options(** kwargs)
+    def parse_options(cls, **kwargs):
+        result = Item.parse_options(** kwargs)
         kw_defaults = { 'loadOnDemand': True}
         for key, value in kw_defaults.iteritems():
             if kwargs.has_key(key):
@@ -73,8 +71,7 @@ class Dict(Item, DictMixin):
         return result
 
     @staticmethod
-    def get_by_xattr(aPath, aKey):
-        # load the Integer from the aKey
+    def get_by_xattr(aPath, aKey, ** kwargs):
         vDir = path.join(aPath, aKey)
         result = None
         vData = GetXattr(vDir, IDB_VALUE_NAME)
@@ -83,10 +80,14 @@ class Dict(Item, DictMixin):
             vData = vData.strip().splitlines()
             for key in vData:
                  if len(key) and key[0] != '.':
-                     result[key] = Loading
+                     if kwargs['loadOnDemand']:
+                         result[key] = Loading(path=aPath, key=aKey)
+                     else:
+                         kwargs['key'] = aKey + '/' + key
+                         result[key] = Item.LoadItem(** kwargs)
         return result
     @staticmethod
-    def get_by_file(aPath, aKey):
+    def get_by_file(aPath, aKey, ** kwargs):
         result = None
         vDir = path.join(aPath, aKey)
         vData = ReadValueFromFile(vDir, IDB_VALUE_NAME)
@@ -95,7 +96,7 @@ class Dict(Item, DictMixin):
             result = {}
             for key in vData:
                 if len(key) and key[0] != '.':
-                     result[key] = Loading
+                     result[key] = Loading(path=aPath, key=aKey)
         return result
     @classmethod
     def set_by_xattr(cls, aPath, aKey, aValue):
@@ -138,7 +139,7 @@ class Dict(Item, DictMixin):
     def __getitem__(self, key):
         if key in self.data:
             result = self.data[key]
-            if result == Loading:
+            if isinstance(result, Loading):
                 opts = self.GetOptions()
                 opts['path'] = self.path
                 opts['key'] = self.key + '/' + key

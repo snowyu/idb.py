@@ -9,6 +9,8 @@ from os import path
 from utils import ForceDirectories
 from helpers import IDB_SPEC_VER, GetDBValue, CreateDBValue, UpdateDBValue, PutDBValue, DeleteDBValue, iDBError
 from helpers import EIDBNODIR
+from Item import Item
+from Dict import Dict
 
 class iValue(object):
     def __init__(self, aType, aValue):
@@ -16,28 +18,31 @@ class iValue(object):
         self.value = aValue
 
 class iDB(object):
-    def _get(self, aKey, aValueType):
-        """
-        """
-    def __init_parms__(self,  **kwargs):
-        kw_defaults = {path: '', storeInFile: True,  storeInXattr: True}
+    @classmethod
+    def get_options(cls, **kwargs):
+        result = {}
+        kw_defaults = {'path': '', 'storeInXattr': True, 'storeInFile': True, 'loadOnDemand': True}
         for key, value in kw_defaults.iteritems():
             if kwargs.has_key(key):
-                val = kwargs[key]
+                result[key] = kwargs[key]
             else:
-                val = value
-            setattr(self, '_' + key, val)
-        self._backup  = bool(self._backup)
-        self._version = IDB_SPEC_VER
-        self.opened  = False
-        #if self.path  ==  '':
-        #    raise iDBError(EIDBNODIR, 'Please specify the database directory first!')
+                 result[key] = value
+        result['storeInXattr'] = bool(result['storeInXattr'])
+        result['storeInFile'] = bool(result['storeInFile'])
+        return result
+    # Get the current options to pass through
+    def GetOptions(self):
+        return {'storeInFile': self._storeInXattr, 'storeInXattr': self._storeInXattr, 'loadOnDemand': self._loadOnDemand}
+    def ApplyOptions(self,  ** options):
+        for key, value in options.iteritems():
+            setattr(self, '_' + key, value)
+
 
     def __init__(self,  **kwargs):
-        """Open an existed database:
-        iDB(path='/mydb', backup=True)
-        """
-        self.__init_parms__(** kwargs)
+        options = self.class.get_options(** kwargs)
+        self.ApplyOptions(** options)
+        self._version = IDB_SPEC_VER
+        self.opened  = False
 
 
         #self.version = self.Get('.db/version')
@@ -55,31 +60,39 @@ class iDB(object):
             self.SaveDBMetaInfo()
         self.opened = True
     def SaveDBMetaInfo(self):
-        self.Put('.db/version', self.version, 'Float')
-    def Get(self, key):
+    def Get(self, aKey):
         """return the value of the key
         """
-        vDir = path.join(self.path, key)
-        return GetDBValue(vDir, self.version)
+        opts = self.GetOptions()
+        opts['path'] = self.path
+        opts['key'] = akey
+        result =  Item.LoadItem(** opts)
+        return result.data
 
-    def Add(self, key, value):
+    def Put(self, aKey, aValue):
         """
         """
-        vDir = path.join(self.path, key)
+        opts = self.GetOptions()
+        opts['path'] = self.path
+        opts['key'] = akey
+        if isinstance(aValue, bool):
+            aValue = Boolean(aValue,  ** opts)
+        elif isinstance(aValue, int): #int and Integer etc all derived from int.
+            aValue = Integer(aValue,  ** opts)
+        elif isinstance(aValue, str):
+            aValue = String(aValue,  ** opts)
+        elif isinstance(aValue, dict):
+            aValue = Dict(aValue,  ** opts)
+        elif isinstance(aValue, Loading):
+            opts['key'] = Loading.key
+            aValue = self.LoadItem(path=Loading.path, key=Loading.key, loadOnDemand=False)
+        elif isinstance(aValue, Item):
+            aValue = type(aValue)(aValue.data,  ** opts)
+        else:
+            aValue = None
+        if aValue != None:
+            aValue.Save()
 
-        CreateDBValue(vDir, aValue, aValueType, self.cache, self.version)
-    def Update(self, key, value):
-        """
-        """
-        vDir = path.join(self.path, key)
-
-        UpdateDBValue(vDir, aValue, aValueType, self.cache, self.version)
-    def Put(self, aKey, aValue, aValueType):
-        """
-        """
-        vDir = path.join(self.path, key)
-
-        PutDBValue(vDir, aValue, aValueType, self.cache, self.version)
     def Delete(self, key):
         """
         """
@@ -95,8 +108,21 @@ class iDB(object):
     def path(self, value):
         self._path = value
     @property
-    def backup(self):
-        return self._backup
-    @backup.setter
-    def backup(self, value):
-        self._backup = bool(value)    
+    def storeInFile(self):
+        return self._storeInFile
+    @storeInFile.setter
+    def storeInFile(self, value):
+        self._storeInFile = bool(value)
+    @property
+    def storeInXattr(self):
+        return self._storeInXattr
+    @storeInXattr.setter
+    def storeInXattr(self, value):
+        self._storeInXattr = bool(value)
+    @property
+    def loadOnDemand(self):
+        return self._loadOnDemand
+    @loadOnDemand.setter
+    def loadOnDemand(self, value):
+        self._loadOnDemand = bool(value)
+

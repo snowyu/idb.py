@@ -18,7 +18,7 @@ from utils import Str2Hex, Str2Bool, ForceDirectories, TouchFile, GetXattr, IsXa
 # the iDB Library version:
 IDB_VER = '0.0.2'
 # the iDB Specification version:
-IDB_SPEC_VER = 0.2
+IDB_SPEC_VER = '0.2'
 
 IDB_KEY_TYPE_NAME = '.type'
 IDB_VALUE_NAME = '.value'

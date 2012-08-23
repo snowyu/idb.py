@@ -7,6 +7,7 @@ from iDB.utils import RandomString
 from iDB.Item import Item
 from iDB.Boolean import Boolean
 from iDB.Hex import Hex
+from iDB.Dict import Dict
 
 from base_test import BaseTest
 
@@ -21,6 +22,8 @@ class ItemTest(BaseTest):
             value = random.randint(-99999, 99999)
         elif issubclass(cls, Boolean):
             value = random.choice(['true', 'false'])
+        elif issubclass(cls, Dict):
+            value = {'mys': RandomString(255), 'myi': random.randint(-99999, 99999)}
         else:
             cls= Item._ItemClasses['String']
         return {'key': key, 'value': value, 'cls':cls}
@@ -41,6 +44,6 @@ class ItemTest(BaseTest):
         pairs= self.save_pairs()
         for item in pairs:
             cls = item['cls']
-            i = cls.LoadFrom(path=self.path, key=item['key'])
+            i = cls.LoadFrom(path=self.path, key=item['key'], loadOnDemand=False)
             assert type(i) == type(item['v'])
             assert i  == item['v']
