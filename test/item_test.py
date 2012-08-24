@@ -7,6 +7,7 @@ from iDB.utils import RandomString
 from iDB.Item import Item, Loading
 from iDB.Boolean import Boolean
 from iDB.Hex import Hex
+from iDB.Float import Float
 from iDB.Dict import Dict
 
 from base_test import BaseTest
@@ -20,6 +21,8 @@ class ItemTest(BaseTest):
         cls= random.choice(Item._ItemClasses.values())
         if issubclass(cls, int):
             value = random.randint(-99999, 99999)
+        elif issubclass(cls, float):
+            value = random.random()
         elif issubclass(cls, Boolean):
             value = random.choice(['true', 'false'])
         elif issubclass(cls, Dict):
@@ -47,7 +50,10 @@ class ItemTest(BaseTest):
             cls = item['cls']
             i = cls.LoadFrom(key=item['key'], loadOnDemand=False,  ** kwargs)
             assert type(i) == type(item['v'])
-            assert i  == item['v']
+            if isinstance(i, float):
+                assert i-item['v']  <= 0.000000001 
+            else:
+                assert i == item['v']
             if type(i) == Dict:
                 i = cls.LoadFrom(key=item['key'], loadOnDemand=True,  ** kwargs)
                 assert type(i) == type(item['v'])
