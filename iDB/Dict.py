@@ -23,7 +23,6 @@ from Hex import Hex
 from String import String
 from Boolean import Boolean
 
-
 # If you need to get a class from a module, you can use getattr: getattr(glob, 'glob')
 # the class is in your scope:
 #get_class = lambda x: globals()[x]
@@ -88,7 +87,7 @@ class Dict(Item, DictMixin):
         result = None
         vDir = path.join(aPath, aKey)
         vData = ReadValueFromFile(vDir, IDB_VALUE_NAME)
-        if len(vData):
+        if vData and len(vData):
             #vData = vData.strip()
             result = {}
             for key in vData:
@@ -157,9 +156,14 @@ class Dict(Item, DictMixin):
         opts = dict(self._options)
         #opts['path'] = self.path
         opts['key'] = self.key + '/' + key
+        # avoid to circular imports
+        Object = Item._ItemClasses['Object']
+
         #clsname = type(item).__name__
         if isinstance(item, Hex):
             item = Hex(item,  ** opts)
+        elif isinstance(item, Object):
+            item = Object(item,  ** opts)
         elif isinstance(item, bool):
             item = Boolean(item,  ** opts)
         elif isinstance(item, int): #int and Integer etc all derived from int.
