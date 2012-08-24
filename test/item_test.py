@@ -4,7 +4,7 @@
 import string, random
 
 from iDB.utils import RandomString
-from iDB.Item import Item
+from iDB.Item import Item, Loading
 from iDB.Boolean import Boolean
 from iDB.Hex import Hex
 from iDB.Dict import Dict
@@ -31,19 +31,34 @@ class ItemTest(BaseTest):
     def RandomPairs(aSize = 99):
         return [ItemTest.RandomKeyValue() for x in range(aSize)]
 
-    def save_pairs(self, size=99):
+    def save_pairs(self, size=99,  ** kwargs):
         pairs = self.RandomPairs(size)
         for item in pairs:
             cls = item['cls']
-            i = cls(item['value'], path=self.path, key=item['key'])
+            kwargs['key'] = item['key']
+            i = cls(item['value'],  ** kwargs)
             item['v'] = i
             i.Save()
         return pairs
 
-    def test_load(self):
-        pairs= self.save_pairs()
+    def _test_load(self,  ** kwargs):
+        pairs= self.save_pairs(** kwargs)
         for item in pairs:
             cls = item['cls']
-            i = cls.LoadFrom(path=self.path, key=item['key'], loadOnDemand=False)
+            i = cls.LoadFrom(key=item['key'], loadOnDemand=False,  ** kwargs)
             assert type(i) == type(item['v'])
             assert i  == item['v']
+            if type(i) == Dict:
+                i = cls.LoadFrom(key=item['key'], loadOnDemand=True,  ** kwargs)
+                assert type(i) == type(item['v'])
+                for x, y in i.iteritems():
+                    assert item['v'].has_key(x)
+                    assert isinstance(y, Loading)
+    def test_load_xattr(self):
+        self._test_load(path=self.path, storeInFile=False, storeInXattr=True)
+ 
+    def test_load_file(self):
+        self._test_load(path=self.path, storeInFile=True, storeInXattr=False)
+    def test_load(self):
+        self._test_load(path=self.path, storeInFile=True, storeInXattr=True)
+
