@@ -78,7 +78,7 @@ class Dict(Item, DictMixin):
             for key in vData:
                  if len(key) and key[0] != '.':
                      if kwargs['loadOnDemand']:
-                         result[key] = Loading(path=aPath, key=aKey)
+                         result[key] = Loading(path=aPath, key=aKey + '/' + key)
                      else:
                          kwargs['key'] = aKey + '/' + key
                          result[key] = Item.LoadItem(** kwargs)
@@ -94,7 +94,7 @@ class Dict(Item, DictMixin):
             for key in vData:
                 if len(key) and key[0] != '.':
                      if kwargs['loadOnDemand']:
-                         result[key] = Loading(path=aPath, key=aKey)
+                         result[key] = Loading(path=aPath, key=aKey + '/' + key)
                      else:
                          kwargs['key'] = aKey + '/' + key
                          result[key] = Item.LoadItem(** kwargs)
@@ -141,9 +141,12 @@ class Dict(Item, DictMixin):
         if key in self.data:
             result = self.data[key]
             if isinstance(result, Loading):
-                opts = self._options
-                opts['key'] = self.key + '/' + key
-                result = self.LoadItem( ** opts )
+                opts = dict(self._options)
+                opts['path'] = result.path
+                opts['key']  = result.key
+                result = Item.LoadItem( ** opts )
+                result.path = self.path
+                result.key = self.key + '/' + key
                 self.data[key] = result
             return result
         if hasattr(self.__class__, "__missing__"):
