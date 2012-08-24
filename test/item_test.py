@@ -9,6 +9,7 @@ from iDB.Boolean import Boolean
 from iDB.Hex import Hex
 from iDB.Float import Float
 from iDB.Dict import Dict
+from iDB.Object import Object
 
 from base_test import BaseTest
 
@@ -67,4 +68,20 @@ class ItemTest(BaseTest):
         self._test_load(path=self.path, storeInFile=True, storeInXattr=False)
     def test_load(self):
         self._test_load(path=self.path, storeInFile=True, storeInXattr=True)
+    def test_save(self):
+        data = {'hi':'word', 'myke':'fghhfssd'}
+        a=Dict(data, path=self.path, key='myd');
+        a.Save()
+        a=Dict.LoadFrom(path=self.path, key='myd', loadOnDemand=True)
+        a.Save()
+        assert data == a
+    def test_save_obj(self):
+        data = {'hi':'word', 'myke':'fghhfssd'}
+        a=Dict(data, path=self.path, key='myd');
+        a.Save()
+        a=Object.LoadFrom(path=self.path, key='myd', loadOnDemand=True)
+        a.key = 'myo'
+        a.Save()
+        assert data == a
+
 

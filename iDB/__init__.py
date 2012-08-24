@@ -6,6 +6,7 @@ from Hex import Hex
 from Float import Float
 from Boolean import Boolean
 from Dict import Dict
+from Object import Object
 
 __version__ = helpers.IDB_VER
 
