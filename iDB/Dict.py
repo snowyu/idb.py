@@ -154,7 +154,7 @@ class Dict(Item, DictMixin):
         raise KeyError(key)
 
     def __setitem__(self, key, item):
-        opts = self._options
+        opts = dict(self._options)
         #opts['path'] = self.path
         opts['key'] = self.key + '/' + key
         #clsname = type(item).__name__
