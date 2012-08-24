@@ -19,7 +19,7 @@ class iValue(object):
 
 class iDB(object):
     @classmethod
-    def get_options(cls, **kwargs):
+    def parse_options(cls, **kwargs):
         result = {}
         kw_defaults = {'path': '', 'storeInXattr': True, 'storeInFile': True, 'loadOnDemand': True}
         for key, value in kw_defaults.iteritems():
@@ -32,15 +32,22 @@ class iDB(object):
         return result
     # Get the current options to pass through
     def GetOptions(self):
-        return {'storeInFile': self._storeInXattr, 'storeInXattr': self._storeInXattr, 'loadOnDemand': self._loadOnDemand}
-    def ApplyOptions(self,  ** options):
+        result = dict(self._options)
+        del result['path']
+        return result
+    def _ApplyOptions(self,  ** options ):
         for key, value in options.iteritems():
             setattr(self, '_' + key, value)
-
-
+    def ApplyOptions(self,  ** new_options):
+        opts = self._options 
+        for key, value in new_options.iteritems():
+            if opts.has_key(key):
+                opts[key] = new_options[key]
+                setattr(self, '_' + key, value)
     def __init__(self,  **kwargs):
-        options = self.class.get_options(** kwargs)
-        self.ApplyOptions(** options)
+        options = self.class.parse_options(** kwargs)
+        self._options = options
+        self._ApplyOptions(** options)
         self._version = IDB_SPEC_VER
         self.opened  = False
 
@@ -53,13 +60,17 @@ class iDB(object):
     def Open(self, aSkipDBConfig = False):
         if self.path  ==  '':
             raise iDBError(EIDBNODIR, 'Please specify the database directory first!')
-        if path.isdir(self.path):
-            self.LoadDBMetaInfo(aSkipDBConfig)
+        vMetaInfo = Dict(path=self.path, key='.db', storeInFile=True, storeInXattr=False)
+        if vMetaInfo.Exists():
+            self.version = vMetaInfo['version']
+            #if vMetaInfo.has_key('version')
+            if not aSkipDBConfig:
+                self.ApplyOptions(vMetaInfo['config']);
         else:
-            ForceDirectories(self.path)
-            self.SaveDBMetaInfo()
+            vMetaInfo['config'] = self.GetOptions()
+            vMetaInfo.Save()
+
         self.opened = True
-    def SaveDBMetaInfo(self):
     def Get(self, aKey):
         """return the value of the key
         """
