@@ -96,7 +96,11 @@ class Dict(Item, DictMixin):
             result = {}
             for key in vData:
                 if len(key) and key[0] != '.':
-                     result[key] = Loading(path=aPath, key=aKey)
+                     if kwargs['loadOnDemand']:
+                         result[key] = Loading(path=aPath, key=aKey)
+                     else:
+                         kwargs['key'] = aKey + '/' + key
+                         result[key] = Item.LoadItem(** kwargs)
         return result
     @classmethod
     def set_by_xattr(cls, aPath, aKey, aValue):
