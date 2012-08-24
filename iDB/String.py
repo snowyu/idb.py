@@ -29,10 +29,10 @@ class String(Item,  str):
         return complex(self.data)
     def __add__(self, value):
         result = self.data + value
-        return type(self)(result, path=self.path, cache=self.cache, key=self.key)
+        return type(self)(result, ** self._options)
     def __radd__(self, value):
         result = value + self.data
-        return type(self)(result, path=self.path, cache=self.cache, key=self.key)
+        return type(self)(result, ** self._options)
     @staticmethod
     def __data__(aStr):
         result = aStr.strip()

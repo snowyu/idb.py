@@ -17,6 +17,7 @@ from helpers import IDB_SPEC_VER, WriteValueFromFile, ReadValueFromFile, DeleteD
 from helpers import EIDBNODIR, IDB_VALUE_NAME, IDB_KEY_TYPE_NAME
 
 from Item import Item, Loading
+from Numberic import Numberic
 from Integer import Integer
 from Hex import Hex
 from String import String
@@ -43,10 +44,6 @@ class Dict(Item, DictMixin):
                 result[key] = kwargs[key]
             else:
                 result[key] = value
-        return result
-    def GetOptions(self):
-        result = super(Dict, self).GetOptions()
-        result['loadOnDemand'] = self.loadOnDemand
         return result
     def update(self, aDict=None, **kwargs):
         if aDict is None:
@@ -144,8 +141,7 @@ class Dict(Item, DictMixin):
         if key in self.data:
             result = self.data[key]
             if isinstance(result, Loading):
-                opts = self.GetOptions()
-                opts['path'] = self.path
+                opts = self._options
                 opts['key'] = self.key + '/' + key
                 result = self.LoadItem( ** opts )
                 self.data[key] = result
@@ -155,8 +151,8 @@ class Dict(Item, DictMixin):
         raise KeyError(key)
 
     def __setitem__(self, key, item):
-        opts = self.GetOptions()
-        opts['path'] = self.path
+        opts = self._options
+        #opts['path'] = self.path
         opts['key'] = self.key + '/' + key
         #clsname = type(item).__name__
         if isinstance(item, Hex):
@@ -167,6 +163,8 @@ class Dict(Item, DictMixin):
             item = Integer(item,  ** opts)
         elif isinstance(item, str):
             item = String(item,  ** opts)
+        elif isinstance(item, float):
+            item = Float(item,  ** opts)
         elif isinstance(item, dict):
             item = Dict(item,  ** opts)
         elif item == Loading and not self.loadOnDemand:

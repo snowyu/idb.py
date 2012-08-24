@@ -21,95 +21,95 @@ class Numberic(Item):
         return abs(self.data)
     def __neg__(self): # negation -self
         result = -self.data
-        return type(self)(result, path=self.path, cache=self.cache, key=self.key)
+        return type(self)(result, ** self._options)
     def __pos__(self): # Positive +self
         result = +self.data.pos
-        return type(self)(result, path=self.path, cache=self.cache, key=self.key)
+        return type(self)(result, ** self._options)
     def __invert__(self):
         return operator.invert(self.data)
 
     def __add__(self, value):
         result = self.data + value
-        return type(self)(result, path=self.path, cache=self.cache, key=self.key)
+        return type(self)(result, ** self._options)
     def __sub__(self, value):
         result = self.data - value
-        return type(self)(result, path=self.path, cache=self.cache, key=self.key)
+        return type(self)(result, ** self._options)
     def __mul__(self, value):
         result = self.data * value
-        return type(self)(result, path=self.path, cache=self.cache, key=self.key)
+        return type(self)(result, ** self._options)
     def __mod__(self, value):
         result = self.data % value
-        return type(self)(result, path=self.path, cache=self.cache, key=self.key)
+        return type(self)(result, ** self._options)
     def __div__(self, value):
         result = self.data / value
-        return type(self)(result, path=self.path, cache=self.cache, key=self.key)
+        return type(self)(result, ** self._options)
     def __truediv__(self, value):
         result = operator.truediv(self.data, value)
-        return type(self)(result, path=self.path, cache=self.cache, key=self.key)
+        return type(self)(result, ** self._options)
     def __floordiv__(self, value):
         result = self.data // value
-        return type(self)(result, path=self.path, cache=self.cache, key=self.key)
+        return type(self)(result, ** self._options)
     def __divmod__(self, value):
         result = divmod(self.data, value)
-        return type(self)(result, path=self.path, cache=self.cache, key=self.key)
+        return type(self)(result, ** self._options)
     def __pow__(self, value):
         result = self.data  **  value
-        return type(self)(result, path=self.path, cache=self.cache, key=self.key)
+        return type(self)(result, ** self._options)
     def __rshift__(self, value):
         result = self.data  >>  value
-        return type(self)(result, path=self.path, cache=self.cache, key=self.key)
+        return type(self)(result, ** self._options)
     def __lshift__(self, value):
         result = self.data  << value
-        return type(self)(result, path=self.path, cache=self.cache, key=self.key)
+        return type(self)(result, ** self._options)
     def __and__(self, value):
         result = operator.and_(self.data,  value)
-        return type(self)(result, path=self.path, cache=self.cache, key=self.key)
+        return type(self)(result, ** self._options)
     def __xor__(self, value):
         result = operator.xor(self.data,  value)
-        return type(self)(result, path=self.path, cache=self.cache, key=self.key)
+        return type(self)(result, ** self._options)
     def __or__(self, value):
         result = operator.or_(self.data,  value)
-        return type(self)(result, path=self.path, cache=self.cache, key=self.key)
+        return type(self)(result, ** self._options)
     def __radd__(self, value):
         result = self.data + value
-        return type(self)(result, path=self.path, cache=self.cache, key=self.key)
+        return type(self)(result, ** self._options)
     def __rsub__(self, value):
         result = self.data - value
-        return type(self)(result, path=self.path, cache=self.cache, key=self.key)
+        return type(self)(result, ** self._options)
     def __rmul__(self, value):
         result = self.data * value
-        return type(self)(result, path=self.path, cache=self.cache, key=self.key)
+        return type(self)(result, ** self._options)
     def __rmod__(self, value):
         result = self.data % value
-        return type(self)(result, path=self.path, cache=self.cache, key=self.key)
+        return type(self)(result, ** self._options)
     def __rdiv__(self, value):
         result = self.data / value
-        return type(self)(result, path=self.path, cache=self.cache, key=self.key)
+        return type(self)(result, ** self._options)
     def __rtruediv__(self, value):
         result = operator.truediv(self.data, value)
-        return type(self)(result, path=self.path, cache=self.cache, key=self.key)
+        return type(self)(result, ** self._options)
     def __rfloordiv__(self, value):
         result = self.data // value
-        return type(self)(result, path=self.path, cache=self.cache, key=self.key)
+        return type(self)(result, ** self._options)
     def __rdivmod__(self, value):
         result = divmod(self.data, value)
-        return type(self)(result, path=self.path, cache=self.cache, key=self.key)
+        return type(self)(result, ** self._options)
     def __rpow__(self, value):
         result = self.data  **  value
-        return type(self)(result, path=self.path, cache=self.cache, key=self.key)
+        return type(self)(result, ** self._options)
     def __rrshift__(self, value):
         result = self.data  >>  value
-        return type(self)(result, path=self.path, cache=self.cache, key=self.key)
+        return type(self)(result, ** self._options)
     def __rlshift__(self, value):
         result = self.data  << value
-        return type(self)(result, path=self.path, cache=self.cache, key=self.key)
+        return type(self)(result, ** self._options)
     def __rand__(self, value):
         result = operator.and_(self.data,  value)
-        return type(self)(result, path=self.path, cache=self.cache, key=self.key)
+        return type(self)(result, ** self._options)
     def __rxor__(self, value):
         result = operator.xor(self.data,  value)
-        return type(self)(result, path=self.path, cache=self.cache, key=self.key)
+        return type(self)(result, ** self._options)
     def __ror__(self, value):
         result = operator.or_(self.data,  value)
-        return type(self)(result, path=self.path, cache=self.cache, key=self.key)
+        return type(self)(result, ** self._options)
 
