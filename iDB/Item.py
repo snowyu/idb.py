@@ -131,13 +131,12 @@ class Item(object):
     # Get the current options to pass through
     # DO NOT INCLUDE path and key
     def GetOptions(self):
-        result = self._options
+        result = dict(self._options)
         if result.has_key('path'):
             del result['path']
         if result.has_key('key'):
             del result['key']
         return result
-        #return {'storeInFile': self._storeInXattr, 'storeInXattr': self._storeInXattr}
     def ApplyOptions(self,  ** options):
         for key, value in options.iteritems():
             setattr(self, '_' + key, value)
