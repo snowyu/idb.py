@@ -1,4 +1,4 @@
-# The Abstract Numberic Class(Spec v0.2):
+# The Abstract Numberic Class:
 # http://docs.python.org/reference/datamodel.html#special-method-names
 
 import operator

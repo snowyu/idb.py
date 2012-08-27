@@ -1,4 +1,4 @@
-# The Hex / KeyValue Class(Spec v0.2):
+# The Hex / KeyValue Class:
 
 from Item import Item
 from Integer import Integer

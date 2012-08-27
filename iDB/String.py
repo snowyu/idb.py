@@ -1,4 +1,4 @@
-# The String Class(Spec v0.2):
+# The String Class:
 
 import operator
 from Item import Item

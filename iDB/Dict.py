@@ -1,4 +1,4 @@
-# The Dict Class(Spec v0.2):
+# The Dict Class:
 # http://docs.python.org/reference/datamodel.html#special-method-names
 # from Dict import Dict
 # a=Dict({'hi':123, 'world': 45, 'goo': 'for good', 'tru': True}, path='test', key='myk')

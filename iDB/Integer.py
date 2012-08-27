@@ -1,4 +1,4 @@
-# The Integer / KeyValue Class(Spec v0.2):
+# The Integer / KeyValue Class:
 # http://docs.python.org/reference/datamodel.html#special-method-names
 
 from utils import Str2Int

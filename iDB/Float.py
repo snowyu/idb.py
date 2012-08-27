@@ -1,4 +1,4 @@
-# The Float / KeyValue Class(Spec v0.2):
+# The Float / KeyValue Class:
 
 from Item import Item
 from Numberic import Numberic

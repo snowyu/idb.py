@@ -1,4 +1,4 @@
-# The Hex / KeyValue Class(Spec v0.2):
+# The Hex / KeyValue Class:
 
 from utils import Str2Bool
 from Item import Item
