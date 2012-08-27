@@ -15,8 +15,8 @@ def main():
         description='iDB Database Engine Library',
         long_description = open('README.md').read(),
         version= IDB_VER,
-        url='https://github.com/snowyu/pyidb',
-        download_url=  'https://github.com/snowyu/pyidb/tarball/%s' % IDB_VER,
+        url='https://github.com/snowyu/idb.py',
+        download_url=  'https://github.com/snowyu/idb.py/tarball/%s' % IDB_VER,
         license='MIT license',
         platforms=['unix', 'linux', 'osx'],
         author='Riceball LEE',
@@ -39,6 +39,7 @@ def main():
                      'Programming Language :: Python :: 3'],
         packages=['iDB',
         ],
+        install_requires=['bitstring'],
         #test_suite = 'test.all_test',
         zip_safe=False,
     )
