@@ -109,6 +109,17 @@ class iDB(object):
         """
         vDir = path.join(self.path, key)
         DeleteDBValue(vDir)
+    def WildcardSearch(self, aKeyPattern, aPageNo=0,  aPageSize=0):
+        """aKeyPattern to Search the key
+           aPageNo is page number from 0 beginning.
+           aPageSize is 0 means use the system default page size.
+           retrun the matched keys list.
+        """
+        vPath = path.join(self.path, aKeyPattern)
+        # todo: the pageNo, and pageSize is not used yet.
+        result = glob.glob(vPath)
+        result = [value.replace(path.join(self.path, ''),'') for value in result] #remove the prefix self.path
+        return result
     @property
     def version(self):
         return self._version
@@ -135,5 +146,5 @@ class iDB(object):
         return self._loadOnDemand
     @loadOnDemand.setter
     def loadOnDemand(self, value):
-        self._loadOnDemand = bool(value)
+            self._loadOnDemand = bool(value)
 
