@@ -11,6 +11,7 @@ from helpers import IDB_SPEC_VER, GetDBValue, CreateDBValue, UpdateDBValue, PutD
 from helpers import EIDBNODIR
 from Item import Item
 from Dict import Dict
+from Object import Object
 
 class iValue(object):
     def __init__(self, aType, aValue):
@@ -21,7 +22,7 @@ class iDB(object):
     @classmethod
     def parse_options(cls, **kwargs):
         result = {}
-        kw_defaults = {'path': '', 'storeInXattr': True, 'storeInFile': True, 'loadOnDemand': True}
+        kw_defaults = {'path': '', 'storeInXattr': True, 'storeInFile': True, 'loadOnDemand': True, 'pageSize': 200}
         for key, value in kw_defaults.iteritems():
             if kwargs.has_key(key):
                 result[key] = kwargs[key]
@@ -45,7 +46,7 @@ class iDB(object):
                 opts[key] = new_options[key]
                 setattr(self, '_' + key, value)
     def __init__(self,  **kwargs):
-        options = self.class.parse_options(** kwargs)
+        options = self.parse_options(** kwargs)
         self._options = options
         self._ApplyOptions(** options)
         self._version = IDB_SPEC_VER
@@ -62,12 +63,14 @@ class iDB(object):
             raise iDBError(EIDBNODIR, 'Please specify the database directory first!')
         vMetaInfo = Dict(path=self.path, key='.db', storeInFile=True, storeInXattr=False)
         if vMetaInfo.Exists():
-            self.version = vMetaInfo['version']
+            vMetaInfo.Load()
+            self._version = vMetaInfo['version']
             #if vMetaInfo.has_key('version')
             if not aSkipDBConfig:
-                self.ApplyOptions(vMetaInfo['config']);
+                self.ApplyOptions(**  vMetaInfo['config']);
         else:
             vMetaInfo['config'] = self.GetOptions()
+            vMetaInfo['version']  =  self.version
             vMetaInfo.Save()
 
         self.opened = True
@@ -109,18 +112,30 @@ class iDB(object):
         """
         vDir = path.join(self.path, key)
         DeleteDBValue(vDir)
-    def WildcardSearch(self, aKeyPattern, aPageNo=0,  aPageSize=0):
+    def WildcardSearch(self, aKeyPattern, aPage=0,  aPageSize=0):
         """aKeyPattern to Search the key through wildcard(*?) matching
-           aPageNo is page number from 0 beginning.
+           aPage is page number from 0 beginning.
            aPageSize is 0 means use the system default page size.
-           retrun the matched keys list.
+           retrun the matched keys list, pageNo and totalCount.
         """
         vPath = path.join(self.path, aKeyPattern)
-        # todo: the pageNo, and pageSize is not used yet.
-        result = glob.glob(vPath)
-        result = [value.replace(path.join(self.path, ''),'') for value in result] #remove the prefix self.path
-        return result
-    def RegExSearch(self, aKeyPattern, aPageNo=0,  aPageSize=0):
+
+        result = []
+        if aPageSize <= 0 or aPageSize > self.pageSize:
+            aPageSize = self.pageSize
+        vRoot  = path.join(self.path, '')
+        vCount = 0
+        vPage  = 0
+        for vFile in glob.iglob(vPath):
+            if path.isdir(vFile):
+                vCount += 1
+                vPage  =  vCount / aPageSize
+                if vPage == aPage:
+                    result += vFile.replace(vRoot, '')
+                #elif vPage > aPage:
+                #    break
+        return {"count": vCount, "page": aPage, "result": result}
+    def RegExSearch(self, aKeyPattern, aPage=0,  aPageSize=0):
         """aKeyPattern to Search the key through Regular Expressions matching.
            aPageNo is page number from 0 beginning.
            aPageSize is 0 means use the system default page size.
