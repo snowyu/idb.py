@@ -133,10 +133,10 @@ class Dict(Item, DictMixin):
 
     # dict override:
     def __str__(self):
-        if isinstance(self, dict):
-            str(self)
-        else:
-             str(self.data)
+        if isinstance(self, Dict):
+            return str(self.data)
+        elif isinstance(self, dict):
+             return str(self)
     def __len__(self): return len(self.data)
     def __getitem__(self, key):
         if key in self.data:
