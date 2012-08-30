@@ -76,10 +76,11 @@ class Dict(Item, DictMixin):
             vData = vData.strip().splitlines()
             for key in vData:
                  if len(key) and key[0] != '.':
-                     if kwargs['loadOnDemand']:
+                     if kwargs.has_key('loadOnDemand') and kwargs['loadOnDemand']:
                          result[key] = Loading(path=aPath, key=aKey + '/' + key)
                      else:
-                         kwargs['key'] = aKey + '/' + key
+                         kwargs['key']  = aKey + '/' + key
+                         kwargs['path'] = aPath
                          result[key] = Item.LoadItem(** kwargs)
         return result
     @staticmethod
@@ -92,10 +93,11 @@ class Dict(Item, DictMixin):
             result = {}
             for key in vData:
                 if len(key) and key[0] != '.':
-                     if kwargs['loadOnDemand']:
+                     if kwargs.has_key('loadOnDemand') and kwargs['loadOnDemand']:
                          result[key] = Loading(path=aPath, key=aKey + '/' + key)
                      else:
                          kwargs['key'] = aKey + '/' + key
+                         kwargs['path'] = aPath
                          result[key] = Item.LoadItem(** kwargs)
         return result
     @classmethod
@@ -157,7 +159,10 @@ class Dict(Item, DictMixin):
         #opts['path'] = self.path
         opts['key'] = self.key + '/' + key
         # avoid to circular imports
-        Object = Item._ItemClasses['Object']
+        if Item._ItemClasses.has_key('Object'):
+            Object = Item._ItemClasses['Object']
+        else:
+            Object = Dict
 
         #clsname = type(item).__name__
         if isinstance(item, Hex):
