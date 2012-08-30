@@ -72,6 +72,7 @@ class Item(object):
     def exists_by_xattr(aPath, aKey):
         vDir  = path.join(aPath, aKey)
         return IsXattrExists(vDir, IDB_VALUE_NAME)
+    @staticmethod
     def exists_by_file(aPath, aKey):
         vFile = path.join(aPath, aKey, IDB_VALUE_NAME)
         return path.isfile(vFile)
@@ -170,7 +171,7 @@ class Item(object):
     def LoadFromFile(self, aKey=None):
         if aKey == None:
             aKey = self.key
-        result = get_by_file(self.path, aKey)
+        result = self.get_by_file(self.path, aKey)
         if result  == None:
             raise iDBError(EIDBNOSUCHKEY, "Error: No Such Key(%s) Exists." % path.join(self.path, self.key))
         self.data = self.__data__(result)
@@ -231,8 +232,8 @@ class Item(object):
             result = self.LoadFromXattr(self.key)
         if not result and storeInFile:
             result = self.LoadFromFile(self.key)
-        if result  == None:
-            raise iDBError(EIDBNOSUCHKEY, "Error: No Such Key(%s) Exists." % path.join(result.path, result.key))
+        #if result  == None:
+        #    raise iDBError(EIDBNOSUCHKEY, "Error: No Such Key(%s) Exists." % path.join(self.path, self.key))
         return result
     def Save(self,  **kwargs):
         self.SaveTo(self.key,  ** kwargs)
