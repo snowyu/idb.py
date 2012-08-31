@@ -160,10 +160,12 @@ class Item(object):
         # load the item from the aKey
         if aKey == None:
             aKey = self.key
-        result = get_by_xattr(self.path, aKey)
+        result = self.get_by_xattr(self.path, aKey,  ** self._options)
         if result  == None:
-            raise iDBError(EIDBNOSUCHKEY, "Error: No Such Key(%s) Exists." % path.join(self.path, self.key))
+            raise iDBError(EIDBNOSUCHKEY, "Error: No Such Key(%s) Exists." % path.join(self.path, aKey))
+            return result
         self.data = self.__data__(result)
+        return self
     def SaveToXattr(self, aKey=None):
         if aKey == None:
             aKey = self.key
@@ -171,10 +173,12 @@ class Item(object):
     def LoadFromFile(self, aKey=None):
         if aKey == None:
             aKey = self.key
-        result = self.get_by_file(self.path, aKey)
+        result = self.get_by_file(self.path, aKey,  ** self._options )
         if result  == None:
             raise iDBError(EIDBNOSUCHKEY, "Error: No Such Key(%s) Exists." % path.join(self.path, self.key))
+            return result
         self.data = self.__data__(result)
+        return self
     def SaveToFile(self, aKey=None):
         if aKey == None:
             aKey = self.key
