@@ -74,9 +74,17 @@ class iDB(object):
             vMetaInfo.Save()
 
         self.opened = True
+    def Close(self):
+        if self.opened:
+            vMetaInfo = Dict(path=self.path, key='.db', storeInFile=True, storeInXattr=False)
+            vMetaInfo['config'] = self.GetOptions()
+            vMetaInfo['version']  =  self.version
+            vMetaInfo.Save()
+            self.opened = False
     def Get(self, aKey):
         """return the value of the key
         """
+        if not self.opened: return None
         opts = self.GetOptions()
         opts['path'] = self.path
         opts['key'] = akey
@@ -86,6 +94,7 @@ class iDB(object):
     def Put(self, aKey, aValue):
         """
         """
+        if not self.opened: return None
         opts = self.GetOptions()
         opts['path'] = self.path
         opts['key'] = akey
@@ -106,10 +115,12 @@ class iDB(object):
             aValue = None
         if aValue != None:
             aValue.Save()
+        return aValue != None
 
     def Delete(self, key):
         """
         """
+        if not self.opened: return None
         vDir = path.join(self.path, key)
         DeleteDBValue(vDir)
     def WildcardSearch(self, aKeyPattern, aPage=0,  aPageSize=0):
@@ -118,6 +129,7 @@ class iDB(object):
            aPageSize is 0 means use the system default page size.
            retrun the matched keys list, pageNo and totalCount.
         """
+        if not self.opened: return None
         vPath = path.join(self.path, aKeyPattern)
 
         result = []
@@ -141,6 +153,7 @@ class iDB(object):
            aPageSize is 0 means use the system default page size.
            retrun the matched keys list.
         """
+        if not self.opened: return None
     @property
     def version(self):
         return self._version
