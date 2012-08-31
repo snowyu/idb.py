@@ -9,7 +9,13 @@ from os import path
 from utils import ForceDirectories
 from helpers import IDB_SPEC_VER, GetDBValue, CreateDBValue, UpdateDBValue, PutDBValue, DeleteDBValue, iDBError
 from helpers import EIDBNODIR
-from Item import Item
+from Item import Item, Loading
+from Integer import Integer
+from Hex import Hex
+from String import String
+from Boolean import Boolean
+from Float import Float
+
 from Dict import Dict
 from Object import Object
 
@@ -36,19 +42,16 @@ class iDB(object):
         result = dict(self._options)
         del result['path']
         return result
-    def _ApplyOptions(self,  ** options ):
-        for key, value in options.iteritems():
-            setattr(self, '_' + key, value)
     def ApplyOptions(self,  ** new_options):
         opts = self._options 
         for key, value in new_options.iteritems():
             if opts.has_key(key):
                 opts[key] = new_options[key]
-                setattr(self, '_' + key, value)
+                #setattr(self, '_' + key, value)
     def __init__(self,  **kwargs):
         options = self.parse_options(** kwargs)
         self._options = options
-        self._ApplyOptions(** options)
+        #self._ApplyOptions(** options)
         self._version = IDB_SPEC_VER
         self.opened  = False
 
@@ -58,6 +61,7 @@ class iDB(object):
         #    self.version = IDB_SPEC_VER
 
     # Open database
+    # aSkipDBConfig: SKip Load DBConfig from database
     def Open(self, aSkipDBConfig = False):
         if self.path  ==  '':
             raise iDBError(EIDBNODIR, 'Please specify the database directory first!')
@@ -87,9 +91,11 @@ class iDB(object):
         if not self.opened: return None
         opts = self.GetOptions()
         opts['path'] = self.path
-        opts['key'] = akey
+        opts['key'] = aKey
         result =  Item.LoadItem(** opts)
-        return result.data
+        if isinstance(result, Item) and not isinstance(result, Dict):
+            result = result.data
+        return result
 
     def Put(self, aKey, aValue):
         """
@@ -97,13 +103,15 @@ class iDB(object):
         if not self.opened: return None
         opts = self.GetOptions()
         opts['path'] = self.path
-        opts['key'] = akey
+        opts['key'] = aKey
         if isinstance(aValue, bool):
             aValue = Boolean(aValue,  ** opts)
         elif isinstance(aValue, int): #int and Integer etc all derived from int.
             aValue = Integer(aValue,  ** opts)
         elif isinstance(aValue, str):
             aValue = String(aValue,  ** opts)
+        elif isinstance(aValue, float):
+            aValue = Float(aValue,  ** opts)
         elif isinstance(aValue, dict):
             aValue = Dict(aValue,  ** opts)
         elif isinstance(aValue, Loading):
@@ -117,11 +125,11 @@ class iDB(object):
             aValue.Save()
         return aValue != None
 
-    def Delete(self, key):
+    def Delete(self, aKey):
         """
         """
         if not self.opened: return None
-        vDir = path.join(self.path, key)
+        vDir = path.join(self.path, aKey)
         DeleteDBValue(vDir)
     def WildcardSearch(self, aKeyPattern, aPage=0,  aPageSize=0):
         """aKeyPattern to Search the key through wildcard(*?) matching
@@ -140,13 +148,13 @@ class iDB(object):
         vPage  = 0
         for vFile in glob.iglob(vPath):
             if path.isdir(vFile):
-                vCount += 1
                 vPage  =  vCount / aPageSize
                 if vPage == aPage:
-                    result += vFile.replace(vRoot, '')
+                    result.append(vFile.replace(vRoot, ''))
+                vCount += 1
                 #elif vPage > aPage:
                 #    break
-        return {"count": vCount, "page": aPage, "result": result}
+        return {"count": vCount, "page": aPage, "keys": result}
     def RegExSearch(self, aKeyPattern, aPage=0,  aPageSize=0):
         """aKeyPattern to Search the key through Regular Expressions matching.
            aPageNo is page number from 0 beginning.
@@ -159,26 +167,32 @@ class iDB(object):
         return self._version
     @property
     def path(self):
-        return self._path
+        return self._options['path']
     @path.setter
     def path(self, value):
-        self._path = value
+        self._options['path'] = value
+    @property
+    def pageSize(self):
+        return self._options['pageSize']
+    @pageSize.setter
+    def pageSize(self, value):
+        self._options['pageSize'] = int(value)
     @property
     def storeInFile(self):
-        return self._storeInFile
+        return self._options['storeInFile']
     @storeInFile.setter
     def storeInFile(self, value):
-        self._storeInFile = bool(value)
+        self._options['storeInFile'] = bool(value)
     @property
     def storeInXattr(self):
-        return self._storeInXattr
+        return self._options['storeInXattr']
     @storeInXattr.setter
     def storeInXattr(self, value):
-        self._storeInXattr = bool(value)
+        self._options['storeInXattr'] = bool(value)
     @property
     def loadOnDemand(self):
-        return self._loadOnDemand
+        return self._options['loadOnDemand']
     @loadOnDemand.setter
     def loadOnDemand(self, value):
-            self._loadOnDemand = bool(value)
+        self._options['loadOnDemand'] = bool(value)
 
