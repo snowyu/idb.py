@@ -34,10 +34,13 @@ class Dict(Item, DictMixin):
     @loadOnDemand.setter
     def loadOnDemand(self, value):
         self._loadOnDemand = bool(value)
+    @property
+    def count(self):
+        return len(self)
     @classmethod
     def parse_options(cls, **kwargs):
         result = Item.parse_options(** kwargs)
-        kw_defaults = { 'loadOnDemand': True}
+        kw_defaults = {'loadOnDemand': True}
         for key, value in kw_defaults.iteritems():
             if kwargs.has_key(key):
                 result[key] = kwargs[key]
