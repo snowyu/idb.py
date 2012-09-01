@@ -7,7 +7,8 @@ from Float import Float
 from Boolean import Boolean
 from Dict import Dict
 from Object import Object
+from iDB import iDB
 
 __version__ = helpers.IDB_VER
 
-__all__ = ['Integer', 'Hex', 'Float', 'Boolean', 'String', 'Dict']
+__all__ = ['iDB', 'Integer', 'Hex', 'Float', 'Boolean', 'String', 'Dict']
