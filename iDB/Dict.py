@@ -14,7 +14,7 @@ from UserDict import DictMixin
 
 from utils import ForceDirectories, SetXattr, GetXattr, IsXattrExists, ListXattr
 from helpers import IDB_SPEC_VER, WriteValueFromFile, ReadValueFromFile, DeleteDBValue, iDBError
-from helpers import EIDBNODIR, IDB_VALUE_NAME, IDB_KEY_TYPE_NAME
+from helpers import EIDBNODIR, IDB_VALUE_NAME, IDB_KEY_TYPE_NAME, IDB_KEYS_NAME
 
 from Item import Item, Loading
 from Numberic import Numberic
@@ -73,7 +73,7 @@ class Dict(Item, DictMixin):
     def get_by_xattr(aPath, aKey, ** kwargs):
         vDir = path.join(aPath, aKey)
         result = None
-        vData = GetXattr(vDir, IDB_VALUE_NAME)
+        vData = GetXattr(vDir, IDB_KEYS_NAME)
         if vData != None:
             result = {}
             vData = vData.strip().splitlines()
@@ -90,7 +90,7 @@ class Dict(Item, DictMixin):
     def get_by_file(aPath, aKey, ** kwargs):
         result = None
         vDir = path.join(aPath, aKey)
-        vData = ReadValueFromFile(vDir, IDB_VALUE_NAME)
+        vData = ReadValueFromFile(vDir, IDB_KEYS_NAME)
         if vData and len(vData):
             #vData = vData.strip()
             result = {}
@@ -116,7 +116,7 @@ class Dict(Item, DictMixin):
                 v.Save( ** opts)
                 keys += key + '\n'
         #super(Dict, cls).set_by_xattr(vDir, keys)
-        SetXattr(vDir, IDB_VALUE_NAME, keys)
+        SetXattr(vDir, IDB_KEYS_NAME, keys)
         SetXattr(vDir, IDB_KEY_TYPE_NAME, cls.__name__)
 
     @classmethod
@@ -130,7 +130,7 @@ class Dict(Item, DictMixin):
                 v.Save( ** opts)
                 keys += key + '\n'
         #super(Dict, cls).set_by_file(vDir, keys)
-        WriteValueFromFile(vDir, keys, IDB_VALUE_NAME)
+        WriteValueFromFile(vDir, keys, IDB_KEYS_NAME)
         WriteValueFromFile(vDir, cls.__name__, IDB_KEY_TYPE_NAME)
 
 
